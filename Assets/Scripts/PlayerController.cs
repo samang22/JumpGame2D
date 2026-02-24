@@ -60,6 +60,8 @@ public class PlayerController : MonoBehaviour
     {
         // ÁÂ¿ì ÀÌµ¿
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+
+        Debug.Log($"isGrounded : {isGrounded}");
     }
 
     private void OnJump(InputAction.CallbackContext context)
