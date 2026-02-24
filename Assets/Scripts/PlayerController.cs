@@ -11,12 +11,14 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded;
     private PlayerInputActions inputActions;
     private float moveInput;
+    private SpriteRenderer spriteRenderer;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         inputActions = new PlayerInputActions();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void OnEnable()
@@ -35,6 +37,16 @@ public class PlayerController : MonoBehaviour
     {
         // Move 입력 읽기
         moveInput = inputActions.Player.Move.ReadValue<float>();
+
+        // 좌우 반전
+        if (moveInput > 0)
+        {
+            spriteRenderer.flipX = false;  // 오른쪽
+        }
+        else if (moveInput < 0)
+        {
+            spriteRenderer.flipX = true;   // 왼쪽
+        }
 
         // 속도 계산
         float speed = Mathf.Abs(rb.linearVelocity.x);
