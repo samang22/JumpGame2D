@@ -19,6 +19,12 @@ public class TilePaletteUI : MonoBehaviour
         RefreshPalette();
     }
 
+    /// <summary>Shows or hides the tile palette panel. Call from "Tile List" button OnClick.</summary>
+    public void TogglePalettePanel()
+    {
+        gameObject.SetActive(!gameObject.activeSelf);
+    }
+
     /// <summary>팔레트 버튼을 다시 그립니다. LoadPaletteFromResources() 호출 후 자동 호출됨.</summary>
     public void RefreshPalette()
     {

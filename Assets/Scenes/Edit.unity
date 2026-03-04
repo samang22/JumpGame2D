@@ -294,11 +294,11 @@ RectTransform:
   - {fileID: 1105943052}
   m_Father: {fileID: 2108639956}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 792, y: 50}
+  m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &441627779
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -312,7 +312,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -423,6 +423,18 @@ MonoBehaviour:
       - m_Target: {fileID: 1692526298}
         m_TargetAssemblyTypeName: TileEditController, Assembly-CSharp
         m_MethodName: LoadPaletteFromResources
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1877003717}
+        m_TargetAssemblyTypeName: TilePaletteUI, Assembly-CSharp
+        m_MethodName: TogglePalettePanel
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1337,7 +1349,7 @@ MonoBehaviour:
     icon: {fileID: 0}
     tile: {fileID: 11400000, guid: d3d1c945a92a78e41806e26a913a48c6, type: 2}
     layer: 0
-  resourcesPalettePath: Tiles
+  resourcesPalettePath: Tiles/
   paletteUI: {fileID: 1877003717}
   paintTile: {fileID: 0}
   paintTileId: 
@@ -1906,11 +1918,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2108639956}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 792, y: 500}
+  m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1877003717
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1918,7 +1930,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1877003715}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d84a5cf8859e1bf4dbce3210fab99e52, type: 3}
   m_Name: 
@@ -1939,7 +1951,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
