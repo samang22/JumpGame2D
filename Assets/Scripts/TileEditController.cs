@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
@@ -7,9 +8,11 @@ public class TileEditController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Camera editCamera;
-    [SerializeField] private Tilemap groundTilemap;           
-    [SerializeField] private Tilemap oneWayTilemap;           
-    [SerializeField] private Tilemap backgroundTilemap;           
+    [SerializeField] private Tilemap groundTilemap;
+    [SerializeField] private Tilemap oneWayTilemap;
+    [SerializeField] private Tilemap backgroundTilemap;
+    [SerializeField] private Tilemap gimmickTilemap;
+    [SerializeField] private Tilemap hazardTilemap;
 
     [Header("Palette")]
     [SerializeField] private List<TilePaletteEntry> palette;
@@ -29,7 +32,10 @@ public class TileEditController : MonoBehaviour
                 return oneWayTilemap != null ? oneWayTilemap : groundTilemap;
             case TileLayerType.BackGround:
                 return backgroundTilemap != null ? backgroundTilemap : groundTilemap;
-            // Gimmick, Hazard 전용 Tilemap을 추가하면 여기에서 분기
+            case TileLayerType.Gimmick:
+                return gimmickTilemap != null ? gimmickTilemap : groundTilemap;
+            case TileLayerType.Hazard:
+                return hazardTilemap != null ? hazardTilemap : groundTilemap;
             default:
                 return groundTilemap;
         }
@@ -39,6 +45,10 @@ public class TileEditController : MonoBehaviour
     {
         if (editCamera == null || groundTilemap == null) return;
         if (Mouse.current == null) return;
+
+        // Don't paint/erase when clicking on UI (e.g. Tile List button, palette buttons)
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            return;
 
         Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
         Vector3Int cellPos = GetMouseCell(mouseScreenPos);
@@ -77,10 +87,10 @@ public class TileEditController : MonoBehaviour
     void EraseAt(Vector3Int cell)
     {
         groundTilemap.SetTile(cell, null);
-        if (oneWayTilemap != null)
-            oneWayTilemap.SetTile(cell, null);
-        if (backgroundTilemap != null)
-            backgroundTilemap.SetTile(cell, null);
+        if (oneWayTilemap != null) oneWayTilemap.SetTile(cell, null);
+        if (backgroundTilemap != null) backgroundTilemap.SetTile(cell, null);
+        if (gimmickTilemap != null) gimmickTilemap.SetTile(cell, null);
+        if (hazardTilemap != null) hazardTilemap.SetTile(cell, null);
     }
 
     public void SetPaintTile(TileBase tile)
@@ -178,6 +188,48 @@ public class TileEditController : MonoBehaviour
             t = backgroundTilemap.GetTile(cell);
             if (t != null) return t;
         }
+        if (gimmickTilemap != null)
+        {
+            t = gimmickTilemap.GetTile(cell);
+            if (t != null) return t;
+        }
+        if (hazardTilemap != null)
+        {
+            t = hazardTilemap.GetTile(cell);
+            if (t != null) return t;
+        }
         return null;
+    }
+
+    /// <summary>
+    /// Builds MapData from current tilemap state. Use when starting Test Play or saving.
+    /// </summary>
+    public MapData CollectMapData()
+    {
+        var data = new MapData();
+        FillLayerData(groundTilemap, data.groundCells);
+        if (oneWayTilemap != null) FillLayerData(oneWayTilemap, data.oneWayCells);
+        if (backgroundTilemap != null) FillLayerData(backgroundTilemap, data.backgroundCells);
+        if (gimmickTilemap != null) FillLayerData(gimmickTilemap, data.gimmickCells);
+        if (hazardTilemap != null) FillLayerData(hazardTilemap, data.hazardCells);
+        return data;
+    }
+
+    private void FillLayerData(Tilemap tilemap, List<TileCellData> list)
+    {
+        if (tilemap == null || list == null) return;
+        list.Clear();
+        var bounds = tilemap.cellBounds;
+        for (int y = bounds.yMin; y < bounds.yMax; y++)
+        {
+            for (int x = bounds.xMin; x < bounds.xMax; x++)
+            {
+                var cell = new Vector3Int(x, y, 0);
+                TileBase t = tilemap.GetTile(cell);
+                if (t == null) continue;
+                var entry = FindEntryByTile(t);
+                list.Add(new TileCellData { x = x, y = y, tileId = entry != null ? entry.id : t.name });
+            }
+        }
     }
 }
