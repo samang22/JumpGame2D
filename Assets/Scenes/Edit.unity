@@ -1156,6 +1156,54 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1085480080}
   m_CullTransparentMesh: 1
+--- !u!1 &1094800916
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1094800918}
+  - component: {fileID: 1094800917}
+  m_Layer: 0
+  m_Name: EditSceneController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1094800917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1094800916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fd722f8634632e4db774fdc8c0febdc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EditSceneController
+  tileEditController: {fileID: 1692526298}
+  playSceneName: Play
+  mapListSceneName: MapList
+  saveSubFolder: Maps
+--- !u!4 &1094800918
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1094800916}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 147.58093, y: 352.37036, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1105943051
 GameObject:
   m_ObjectHideFlags: 0
@@ -1238,7 +1286,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1105943054}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1094800917}
+        m_TargetAssemblyTypeName: EditSceneController, Assembly-CSharp
+        m_MethodName: OnToMapListClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1105943054
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1963,7 +2023,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1755157813}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1094800917}
+        m_TargetAssemblyTypeName: EditSceneController, Assembly-CSharp
+        m_MethodName: OnTestPlayClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1755157813
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2084,7 +2156,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1795000998}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1094800917}
+        m_TargetAssemblyTypeName: EditSceneController, Assembly-CSharp
+        m_MethodName: OnSaveClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1795000998
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2680,3 +2764,4 @@ SceneRoots:
   - {fileID: 1692526299}
   - {fileID: 2100338066}
   - {fileID: 2108639956}
+  - {fileID: 1094800918}
