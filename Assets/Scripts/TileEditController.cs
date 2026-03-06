@@ -201,9 +201,7 @@ public class TileEditController : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// Builds MapData from current tilemap state. Use when starting Test Play or saving.
-    /// </summary>
+    /// <summary>Builds MapData from current tilemap state. Use when starting Test Play or saving.</summary>
     public MapData CollectMapData()
     {
         var data = new MapData();

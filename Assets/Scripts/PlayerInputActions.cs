@@ -15,9 +15,7 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 
-/// <summary>
 /// Provides programmatic access to <see cref="InputActionAsset" />, <see cref="InputActionMap" />, <see cref="InputAction" /> and <see cref="InputControlScheme" /> instances defined in asset "Assets/Scripts/PlayerInputActions.inputactions".
-/// </summary>
 /// <remarks>
 /// This class is source generated and any manual edits will be discarded if the associated asset is reimported or modified.
 /// </remarks>
@@ -74,14 +72,10 @@ using UnityEngine.InputSystem.Utilities;
 /// </example>
 public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
 {
-    /// <summary>
     /// Provides access to the underlying asset instance.
-    /// </summary>
     public InputActionAsset asset { get; }
 
-    /// <summary>
     /// Constructs a new instance.
-    /// </summary>
     public @PlayerInputActions()
     {
         asset = InputActionAsset.FromJson(@"{
@@ -172,9 +166,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, PlayerInputActions.Player.Disable() has not been called.");
     }
 
-    /// <summary>
     /// Destroys this asset and all associated <see cref="InputAction"/> instances.
-    /// </summary>
     public void Dispose()
     {
         UnityEngine.Object.Destroy(asset);
@@ -247,28 +239,18 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
     private readonly InputAction m_Player_Move;
     private readonly InputAction m_Player_Jump;
-    /// <summary>
     /// Provides access to input actions defined in input action map "Player".
-    /// </summary>
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
 
-        /// <summary>
         /// Construct a new instance of the input action map wrapper class.
-        /// </summary>
         public PlayerActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
-        /// <summary>
         /// Provides access to the underlying input action "Player/Move".
-        /// </summary>
         public InputAction @Move => m_Wrapper.m_Player_Move;
-        /// <summary>
         /// Provides access to the underlying input action "Player/Jump".
-        /// </summary>
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
-        /// <summary>
         /// Provides access to the underlying input action map instance.
-        /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
         public void Enable() { Get().Enable(); }
@@ -276,13 +258,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public void Disable() { Get().Disable(); }
         /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
         public bool enabled => Get().enabled;
-        /// <summary>
         /// Implicitly converts an <see ref="PlayerActions" /> to an <see ref="InputActionMap" /> instance.
-        /// </summary>
         public static implicit operator InputActionMap(PlayerActions set) { return set.Get(); }
-        /// <summary>
         /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
-        /// </summary>
         /// <param name="instance">Callback instance.</param>
         /// <remarks>
         /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
@@ -300,9 +278,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Jump.canceled += instance.OnJump;
         }
 
-        /// <summary>
         /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
-        /// </summary>
         /// <remarks>
         /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
         /// </remarks>
@@ -317,9 +293,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Jump.canceled -= instance.OnJump;
         }
 
-        /// <summary>
         /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="PlayerActions.UnregisterCallbacks(IPlayerActions)" />.
-        /// </summary>
         /// <seealso cref="PlayerActions.UnregisterCallbacks(IPlayerActions)" />
         public void RemoveCallbacks(IPlayerActions instance)
         {
@@ -327,9 +301,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 UnregisterCallbacks(instance);
         }
 
-        /// <summary>
         /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
-        /// </summary>
         /// <remarks>
         /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
         /// </remarks>
@@ -344,27 +316,19 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             AddCallbacks(instance);
         }
     }
-    /// <summary>
     /// Provides a new <see cref="PlayerActions" /> instance referencing this action map.
-    /// </summary>
     public PlayerActions @Player => new PlayerActions(this);
-    /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
-    /// </summary>
     /// <seealso cref="PlayerActions.AddCallbacks(IPlayerActions)" />
     /// <seealso cref="PlayerActions.RemoveCallbacks(IPlayerActions)" />
     public interface IPlayerActions
     {
-        /// <summary>
         /// Method invoked when associated input action "Move" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnMove(InputAction.CallbackContext context);
-        /// <summary>
         /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
