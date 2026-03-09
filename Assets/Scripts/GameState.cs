@@ -23,6 +23,11 @@ public static class GameState
 [System.Serializable]
 public class MapData
 {
+    /// <summary>Player spawn position (world X). Used when loading map or test play.</summary>
+    public float spawnX;
+    /// <summary>Player spawn position (world Y).</summary>
+    public float spawnY;
+
     public List<TileCellData> groundCells = new List<TileCellData>();
     public List<TileCellData> oneWayCells = new List<TileCellData>();
     public List<TileCellData> backgroundCells = new List<TileCellData>();

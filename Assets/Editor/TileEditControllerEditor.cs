@@ -6,26 +6,20 @@ using System.IO;
 [CustomEditor(typeof(TileEditController))]
 public class TileEditControllerEditor : Editor
 {
-    private const string FolderPathKey = "TileEditController.PaletteFolderPath";
-    private string _folderPath = "Assets/Tile";
-
-    private void OnEnable()
-    {
-        _folderPath = EditorPrefs.GetString(FolderPathKey, "Assets/Tile");
-    }
-
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
 
         EditorGUILayout.Space(10);
         EditorGUILayout.LabelField("Auto-fill Palette (from folder)", EditorStyles.boldLabel);
-        _folderPath = EditorGUILayout.TextField("Folder Path", _folderPath);
+        SerializedProperty resourcesPathProp = serializedObject.FindProperty("resourcesPalettePath");
+        string resourcesPath = resourcesPathProp != null ? resourcesPathProp.stringValue : "Tiles";
+        string scanPath = string.IsNullOrWhiteSpace(resourcesPath) ? "Assets/Resources" : "Assets/Resources/" + resourcesPath.Trim('/');
+        EditorGUILayout.HelpBox($"Scan 경로: {scanPath}\n(Resources Palette Path와 동일한 폴더를 스캔합니다.)", MessageType.None);
 
         if (GUILayout.Button("Scan folder and fill palette"))
         {
-            LoadPaletteFromFolder(_folderPath);
-            EditorPrefs.SetString(FolderPathKey, _folderPath);
+            LoadPaletteFromFolder(scanPath);
         }
     }
 
@@ -73,6 +67,8 @@ public class TileEditControllerEditor : Editor
 
             string nameWithoutExtension = Path.GetFileNameWithoutExtension(path);
             string id = nameWithoutExtension;
+            string parentFolder = Path.GetFileName(Path.GetDirectoryName(path) ?? "").ToLowerInvariant();
+            TileLayerType layer = LayerFromFolderName(parentFolder);
 
             paletteProp.InsertArrayElementAtIndex(index);
             SerializedProperty element = paletteProp.GetArrayElementAtIndex(index);
@@ -80,11 +76,21 @@ public class TileEditControllerEditor : Editor
             element.FindPropertyRelative("displayName").stringValue = id;
             element.FindPropertyRelative("icon").objectReferenceValue = null;
             element.FindPropertyRelative("tile").objectReferenceValue = tile;
-            element.FindPropertyRelative("layer").enumValueIndex = (int)TileLayerType.Solid;
+            element.FindPropertyRelative("layer").enumValueIndex = (int)layer;
             index++;
         }
 
         so.ApplyModifiedProperties();
         Debug.Log($"Added {index} tiles to palette. (Folder: {folderPath})");
+    }
+
+    private static TileLayerType LayerFromFolderName(string folderName)
+    {
+        if (string.IsNullOrEmpty(folderName)) return TileLayerType.Solid;
+        if (folderName.Contains("gimmick")) return TileLayerType.Gimmick;
+        if (folderName.Contains("oneway") || folderName.Contains("one_way")) return TileLayerType.OneWay;
+        if (folderName.Contains("background") || folderName.Contains("back")) return TileLayerType.BackGround;
+        if (folderName.Contains("hazard")) return TileLayerType.Hazard;
+        return TileLayerType.Solid; // ground, default
     }
 }

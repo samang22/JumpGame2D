@@ -8,6 +8,8 @@ public class TileEditController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Camera editCamera;
+    [Tooltip("Player or spawn marker Transform. Position is saved as spawn in MapData.")]
+    [SerializeField] private Transform spawnPositionSource;
     [SerializeField] private Tilemap groundTilemap;
     [SerializeField] private Tilemap oneWayTilemap;
     [SerializeField] private Tilemap backgroundTilemap;
@@ -55,6 +57,15 @@ public class TileEditController : MonoBehaviour
 
         bool leftPressed = Mouse.current.leftButton.isPressed;
         bool rightPressed = Mouse.current.rightButton.isPressed;
+
+        // 플레이어(스폰) 위 클릭 시 타일 그리기/지우기 하지 않음 (드래그 배치와 겹침 방지)
+        if (spawnPositionSource != null)
+        {
+            Vector3 w = editCamera.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0f));
+            var hit = Physics2D.OverlapPoint(new Vector2(w.x, w.y));
+            if (hit != null && spawnPositionSource != null && (hit.transform == spawnPositionSource || hit.transform.IsChildOf(spawnPositionSource)))
+                return;
+        }
 
         if (leftPressed)
         {
@@ -112,7 +123,7 @@ public class TileEditController : MonoBehaviour
     /// <summary>Returns the current palette list. Creates an empty list if needed.</summary>
     public IReadOnlyList<TilePaletteEntry> GetPalette() => palette ?? (palette = new List<TilePaletteEntry>());
 
-    /// <summary>Loads tiles from Resources into the palette. Intended to be called from a UI button.</summary>
+    /// <summary>Loads tiles from Resources into the palette. 서브폴더명으로 레이어 자동 지정 (Ground, Gimmick 등).</summary>
     public void LoadPaletteFromResources()
     {
         if (string.IsNullOrWhiteSpace(resourcesPalettePath))
@@ -121,31 +132,60 @@ public class TileEditController : MonoBehaviour
             return;
         }
 
-        TileBase[] tiles = Resources.LoadAll<TileBase>(resourcesPalettePath);
-        if (tiles == null || tiles.Length == 0)
-        {
-            Debug.LogWarning($"No TileBase assets found under Resources/{resourcesPalettePath}. Make sure tiles are placed under a Resources folder.");
-            return;
-        }
-
+        string basePath = resourcesPalettePath.Trim('/');
         if (palette == null) palette = new List<TilePaletteEntry>();
         palette.Clear();
-        foreach (TileBase t in tiles)
+
+        // 서브폴더별로 로드해 레이어 지정 (섹션 구분 유지). 폴더명 대소문자 여러 형태 시도.
+        var folders = new[] { ("Ground", TileLayerType.Solid), ("OneWay", TileLayerType.OneWay), ("Background", TileLayerType.BackGround), ("Gimmick", TileLayerType.Gimmick), ("Hazard", TileLayerType.Hazard) };
+        foreach (var (folderName, layer) in folders)
         {
-            palette.Add(new TilePaletteEntry
+            string path = string.IsNullOrEmpty(basePath) ? folderName : basePath + "/" + folderName;
+            TileBase[] tiles = Resources.LoadAll<TileBase>(path);
+            if (tiles == null || tiles.Length == 0 && !string.IsNullOrEmpty(basePath))
             {
-                id = t.name,
-                displayName = t.name,
-                icon = null,
-                tile = t,
-                layer = TileLayerType.Solid
-            });
+                string pathLower = basePath + "/" + folderName.ToLowerInvariant();
+                tiles = Resources.LoadAll<TileBase>(pathLower);
+            }
+            if (tiles == null || tiles.Length == 0) continue;
+            foreach (TileBase t in tiles)
+            {
+                palette.Add(new TilePaletteEntry
+                {
+                    id = t.name,
+                    displayName = t.name,
+                    icon = null,
+                    tile = t,
+                    layer = layer
+                });
+            }
         }
 
-        if (paletteUI != null)
-            paletteUI.RefreshPalette();
+        // 서브폴더에 없으면 루트 경로에서 로드 (전부 Solid)
+        if (palette.Count == 0)
+        {
+            TileBase[] tiles = Resources.LoadAll<TileBase>(basePath);
+            if (tiles != null)
+            {
+                foreach (TileBase t in tiles)
+                {
+                    palette.Add(new TilePaletteEntry
+                    {
+                        id = t.name,
+                        displayName = t.name,
+                        icon = null,
+                        tile = t,
+                        layer = TileLayerType.Solid
+                    });
+                }
+            }
+        }
 
-        Debug.Log($"Palette loaded: {palette.Count} tiles (Resources/{resourcesPalettePath})");
+        if (palette.Count == 0)
+            Debug.LogWarning($"No TileBase found under Resources/{basePath}. Use subfolders Ground, Gimmick, etc. for layer grouping.");
+
+
+        Debug.Log($"Palette loaded: {palette.Count} tiles (Resources/{basePath})");
     }
 
     TilePaletteEntry FindEntryByTile(TileBase tile)
@@ -205,6 +245,11 @@ public class TileEditController : MonoBehaviour
     public MapData CollectMapData()
     {
         var data = new MapData();
+        if (spawnPositionSource != null)
+        {
+            data.spawnX = spawnPositionSource.position.x;
+            data.spawnY = spawnPositionSource.position.y;
+        }
         FillLayerData(groundTilemap, data.groundCells);
         if (oneWayTilemap != null) FillLayerData(oneWayTilemap, data.oneWayCells);
         if (backgroundTilemap != null) FillLayerData(backgroundTilemap, data.backgroundCells);

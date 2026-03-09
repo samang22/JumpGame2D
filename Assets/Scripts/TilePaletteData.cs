@@ -43,3 +43,19 @@ public enum TileLayerType
     Gimmick,    // tiles used only by other systems/objects (rails, triggers, etc.)
     Hazard      // harmful tiles (damage/kill on contact)
 }
+
+public static class TileLayerTypeDisplay
+{
+    public static string GetDisplayName(TileLayerType layer)
+    {
+        switch (layer)
+        {
+            case TileLayerType.Solid: return "Ground";
+            case TileLayerType.OneWay: return "One Way";
+            case TileLayerType.BackGround: return "Background";
+            case TileLayerType.Gimmick: return "Gimmick";
+            case TileLayerType.Hazard: return "Hazard";
+            default: return layer.ToString();
+        }
+    }
+}

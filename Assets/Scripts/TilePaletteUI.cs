@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using TMPro;
+using System.Linq;
 
 /// <summary>
 /// TileEditController의 팔레트를 읽어 버튼을 자동 생성하고,
@@ -13,19 +14,43 @@ public class TilePaletteUI : MonoBehaviour
     [SerializeField] private TileEditController tileEditController;
     [SerializeField] private Transform buttonContainer;
     [SerializeField] private GameObject buttonPrefab;
+    [Tooltip("섹션 그룹 프리팹. 자식에 헤더용 Text + 이름이 GridRoot인 오브젝트(Grid Layout Group 붙임) 있으면 타일을 그리드로 여러 줄 표시.")]
+    [SerializeField] private GameObject sectionGroupPrefab;
+    [Tooltip("섹션 그룹 프리팹 안에서 타일 버튼을 넣을 자식 이름. 기본 GridRoot.")]
+    [SerializeField] private string gridRootChildName = "GridRoot";
 
     private void Start()
     {
-        RefreshPalette();
+        //if (tileEditController != null)
+        //    tileEditController.LoadPaletteFromResources();
+        //RefreshPalette();
     }
 
-    /// <summary>Shows or hides the tile palette panel. Call from "Tile List" button OnClick.</summary>
+    /// <summary>Shows or hides the tile palette panel. Call from "Tile List" button OnClick. 패널을 열 때마다 Resources에서 팔레트를 다시 불러와 섹션 구분을 적용합니다.</summary>
     public void TogglePalettePanel()
     {
-        gameObject.SetActive(!gameObject.activeSelf);
+        bool willShow = !gameObject.activeSelf;
+
+        if (willShow)
+        {
+            // 먼저 패널을 켜고
+            gameObject.SetActive(true);
+
+            // 그 상태에서 팔레트 로드 + UI 리프레시
+            if (tileEditController != null)
+            {
+                tileEditController.LoadPaletteFromResources();
+                RefreshPalette();
+            }
+        }
+        else
+        {
+            // 닫을 때는 단순히 비활성화만
+            gameObject.SetActive(false);
+        }
     }
 
-    /// <summary>팔레트 버튼을 다시 그립니다. LoadPaletteFromResources() 호출 후 자동 호출됨.</summary>
+    /// <summary>팔레트 버튼을 다시 그립니다. 레이어별로 섹션 그룹 + 버튼 생성.</summary>
     public void RefreshPalette()
     {
         if (tileEditController == null || buttonContainer == null || buttonPrefab == null)
@@ -38,35 +63,91 @@ public class TilePaletteUI : MonoBehaviour
         if (palette == null || palette.Count == 0)
             return;
 
-        foreach (TilePaletteEntry entry in palette)
+        bool useSectionGroup = sectionGroupPrefab != null;
+        var layerOrder = new[] { TileLayerType.Solid, TileLayerType.OneWay, TileLayerType.BackGround, TileLayerType.Gimmick, TileLayerType.Hazard };
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if ((useSectionGroup) && palette.Count > 0)
         {
-            if (entry.tile == null) continue;
-
-            GameObject go = Instantiate(buttonPrefab, buttonContainer);
-            Button btn = go.GetComponent<Button>();
-            if (btn == null) btn = go.GetComponentInChildren<Button>();
-
-            Image img = go.GetComponentInChildren<Image>();
-            if (img != null)
+            var sb = new System.Text.StringBuilder("Palette 섹션: ");
+            foreach (var layer in layerOrder)
             {
-                Sprite sprite = entry.GetDisplaySprite();
-                if (sprite != null)
-                    img.sprite = sprite;
+                int n = 0;
+                foreach (var e in palette) if (e.tile != null && e.layer == layer) n++;
+                if (n > 0) sb.Append(TileLayerTypeDisplay.GetDisplayName(layer)).Append("=").Append(n).Append(" ");
             }
-
-            string label = string.IsNullOrEmpty(entry.displayName) ? entry.id : entry.displayName;
-            var tmpText = go.GetComponentInChildren<TMP_Text>();
-            if (tmpText != null)
-                tmpText.text = label;
-            else
-            {
-                var legacyText = go.GetComponentInChildren<Text>();
-                if (legacyText != null) legacyText.text = label;
-            }
-
-            TileBase tileToSet = entry.tile;
-            if (btn != null)
-                btn.onClick.AddListener(() => tileEditController.SetPaintTile(tileToSet));
+            Debug.Log(sb.ToString());
         }
+#endif
+
+        if (useSectionGroup)
+        {
+            foreach (var layer in layerOrder)
+            {
+                var entriesOfLayer = palette.Where(e => e.tile != null && e.layer == layer).ToList();
+                if (entriesOfLayer.Count == 0) continue;
+
+                var group = Instantiate(sectionGroupPrefab, buttonContainer);
+                string headerText = TileLayerTypeDisplay.GetDisplayName(layer);
+                var tmp = group.GetComponentInChildren<TMP_Text>();
+                if (tmp != null) tmp.text = headerText;
+                else
+                {
+                    var leg = group.GetComponentInChildren<Text>();
+                    if (leg != null) leg.text = headerText;
+                }
+
+                Transform gridRoot = group.transform.Find(gridRootChildName);
+                if (gridRoot == null) gridRoot = group.transform;
+
+                foreach (var entry in entriesOfLayer)
+                    AddButton(entry, gridRoot);
+            }
+        }
+        else
+        {
+            foreach (TilePaletteEntry entry in palette)
+            {
+                if (entry.tile == null) continue;
+                AddButton(entry, buttonContainer);
+            }
+        }
+
+        // 레이아웃 갱신 (한 프레임 뒤에 다시 해서 Scroll View Content가 확실히 갱신되도록)
+        var containerRect = buttonContainer as RectTransform;
+        if (containerRect != null)
+        {
+            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(containerRect);
+        }
+    }
+
+
+    private void AddButton(TilePaletteEntry entry, Transform parent)
+    {
+        GameObject go = Instantiate(buttonPrefab, parent);
+        Button btn = go.GetComponent<Button>();
+        if (btn == null) btn = go.GetComponentInChildren<Button>();
+
+        Image img = go.GetComponentInChildren<Image>();
+        if (img != null)
+        {
+            Sprite sprite = entry.GetDisplaySprite();
+            if (sprite != null)
+                img.sprite = sprite;
+        }
+
+        string label = string.IsNullOrEmpty(entry.displayName) ? entry.id : entry.displayName;
+        var tmpText = go.GetComponentInChildren<TMP_Text>();
+        if (tmpText != null)
+            tmpText.text = label;
+        else
+        {
+            var legacyText = go.GetComponentInChildren<Text>();
+            if (legacyText != null) legacyText.text = label;
+        }
+
+        TileBase tileToSet = entry.tile;
+        if (btn != null)
+            btn.onClick.AddListener(() => tileEditController.SetPaintTile(tileToSet));
     }
 }
