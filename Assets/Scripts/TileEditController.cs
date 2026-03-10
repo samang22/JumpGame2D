@@ -9,7 +9,7 @@ public class TileEditController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Camera editCamera;
     [Tooltip("Player or spawn marker Transform. Position is saved as spawn in MapData.")]
-    [SerializeField] private Transform spawnPositionSource;
+    [SerializeField] private GameObject spawnMarker;
     [SerializeField] private Tilemap groundTilemap;
     [SerializeField] private Tilemap oneWayTilemap;
     [SerializeField] private Tilemap backgroundTilemap;
@@ -59,12 +59,15 @@ public class TileEditController : MonoBehaviour
         bool rightPressed = Mouse.current.rightButton.isPressed;
 
         // 플레이어(스폰) 위 클릭 시 타일 그리기/지우기 하지 않음 (드래그 배치와 겹침 방지)
-        if (spawnPositionSource != null)
+        if (spawnMarker != null)
         {
             Vector3 w = editCamera.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0f));
             var hit = Physics2D.OverlapPoint(new Vector2(w.x, w.y));
-            if (hit != null && spawnPositionSource != null && (hit.transform == spawnPositionSource || hit.transform.IsChildOf(spawnPositionSource)))
+            if (hit != null && spawnMarker != null &&
+               (hit.transform == spawnMarker.transform || hit.transform.IsChildOf(spawnMarker.transform)))
+            {
                 return;
+            }
         }
 
         if (leftPressed)
@@ -180,12 +183,6 @@ public class TileEditController : MonoBehaviour
                 }
             }
         }
-
-        if (palette.Count == 0)
-            Debug.LogWarning($"No TileBase found under Resources/{basePath}. Use subfolders Ground, Gimmick, etc. for layer grouping.");
-
-
-        Debug.Log($"Palette loaded: {palette.Count} tiles (Resources/{basePath})");
     }
 
     TilePaletteEntry FindEntryByTile(TileBase tile)
@@ -245,10 +242,14 @@ public class TileEditController : MonoBehaviour
     public MapData CollectMapData()
     {
         var data = new MapData();
-        if (spawnPositionSource != null)
+        if (spawnMarker == null)
+            return data;
+
+        var spawnT = spawnMarker.transform;
+        if (spawnT != null)
         {
-            data.spawnX = spawnPositionSource.position.x;
-            data.spawnY = spawnPositionSource.position.y;
+            data.spawnX = spawnT.position.x;
+            data.spawnY = spawnT.position.y;
         }
         FillLayerData(groundTilemap, data.groundCells);
         if (oneWayTilemap != null) FillLayerData(oneWayTilemap, data.oneWayCells);
@@ -274,5 +275,12 @@ public class TileEditController : MonoBehaviour
                 list.Add(new TileCellData { x = x, y = y, tileId = entry != null ? entry.id : t.name });
             }
         }
+    }
+    
+    public void ClearPaintSelection()
+    {
+        paintTile = null;
+        paintTileId = "";
+        eraseMode = false;
     }
 }

@@ -18,7 +18,7 @@ public class TilePaletteUI : MonoBehaviour
     [SerializeField] private GameObject sectionGroupPrefab;
     [Tooltip("섹션 그룹 프리팹 안에서 타일 버튼을 넣을 자식 이름. 기본 GridRoot.")]
     [SerializeField] private string gridRootChildName = "GridRoot";
-
+    [SerializeField] private GameObject clearButtonPrefab;
     private void Start()
     {
         //if (tileEditController != null)
@@ -79,6 +79,14 @@ public class TilePaletteUI : MonoBehaviour
             Debug.Log(sb.ToString());
         }
 #endif
+
+        if (clearButtonPrefab != null)
+        {
+            var clear = Instantiate(clearButtonPrefab, buttonContainer);
+            var btn = clear.GetComponentInChildren<Button>();
+            if (btn != null && tileEditController != null)
+                btn.onClick.AddListener(() => tileEditController.ClearPaintSelection());
+        }
 
         if (useSectionGroup)
         {
