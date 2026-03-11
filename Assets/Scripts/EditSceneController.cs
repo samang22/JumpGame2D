@@ -37,6 +37,27 @@ public class EditSceneController : MonoBehaviour
     {
         EnterEditMode();
         SetTestPlayButtonLabel("Test Play");
+        TryLoadSelectedMap();
+    }
+
+    private void TryLoadSelectedMap()
+    {
+        if (string.IsNullOrEmpty(GameState.SelectedMapId)) return;
+        if (tileEditController == null) return;
+
+        string dir = System.IO.Path.Combine(Application.persistentDataPath, saveSubFolder);
+        string path = System.IO.Path.Combine(dir, GameState.SelectedMapId + ".json");
+
+        if (!System.IO.File.Exists(path))
+        {
+            Debug.LogWarning($"[EditSceneController] Map file not found: {path}");
+            return;
+        }
+
+        string json = System.IO.File.ReadAllText(path);
+        MapData data = JsonUtility.FromJson<MapData>(json);
+        tileEditController.ApplyMapData(data);
+        Debug.Log($"[EditSceneController] Map loaded: {GameState.SelectedMapId}");
     }
 
     /// <summary>Call this from the Test Play button OnClick. Toggles between edit and test play; button text switches between "Test Play" and "Return to Edit".</summary>

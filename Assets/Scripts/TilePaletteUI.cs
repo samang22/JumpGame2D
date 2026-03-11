@@ -30,6 +30,7 @@ public class TilePaletteUI : MonoBehaviour
     public void TogglePalettePanel()
     {
         bool willShow = !gameObject.activeSelf;
+        Debug.Log($"[TilePaletteUI] TogglePalettePanel called. activeSelf={gameObject.activeSelf}, willShow={willShow}, pos={((RectTransform)transform).anchoredPosition}, size={((RectTransform)transform).sizeDelta}");
 
         if (willShow)
         {

@@ -1,0 +1,135 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
+using System.IO;
+
+public class MapListController : MonoBehaviour
+{
+    [Header("List UI")]
+    [SerializeField] private Transform listContent;
+    [SerializeField] private GameObject mapButtonPrefab;
+
+    [Header("Mode Popup")]
+    [SerializeField] private GameObject modePopup;
+    [SerializeField] private TMP_Text popupTitleText;
+
+    [Header("Save Settings")]
+    [SerializeField] private string saveSubFolder = "Maps";
+
+    private string selectedMapId;
+
+    private void Start()
+    {
+        if (modePopup != null)
+            modePopup.SetActive(false);
+
+        PopulateList();
+    }
+
+    private void PopulateList()
+    {
+        if (listContent == null || mapButtonPrefab == null)
+        {
+            Debug.LogWarning("[MapListController] listContent or mapButtonPrefab is not assigned.");
+            return;
+        }
+
+        for (int i = listContent.childCount - 1; i >= 0; i--)
+            Destroy(listContent.GetChild(i).gameObject);
+
+        string dir = Path.Combine(Application.persistentDataPath, saveSubFolder);
+        if (!Directory.Exists(dir))
+        {
+            Debug.Log($"[MapListController] Save folder not found: {dir}");
+            return;
+        }
+
+        string[] files = Directory.GetFiles(dir, "*.json");
+        foreach (string path in files)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(path);
+
+            GameObject go = Instantiate(mapButtonPrefab, listContent);
+            var btn = go.GetComponent<Button>();
+            var label = go.GetComponentInChildren<TMP_Text>();
+            if (label != null) label.text = fileName;
+
+            string mapId = fileName;
+            if (btn != null)
+                btn.onClick.AddListener(() => OnMapButtonClicked(mapId));
+        }
+    }
+
+    private void OnMapButtonClicked(string mapId)
+    {
+        selectedMapId = mapId;
+        GameState.SelectedMapId = mapId;
+        GameState.IsTestPlay = false;
+
+        if (popupTitleText != null)
+            popupTitleText.text = $"How would you like to open \"{mapId}\"?";
+
+        if (modePopup != null)
+            modePopup.SetActive(true);
+    }
+
+    /// <summary>Button_Edit의 OnClick에서 호출. sceneName에 "Edit" 등 씬 이름을 직접 입력.</summary>
+    public void OnClickEdit(string sceneName)
+    {
+        if (string.IsNullOrEmpty(selectedMapId))
+        {
+            Debug.LogWarning("[MapListController] No map selected (Edit).");
+            return;
+        }
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            Debug.LogWarning("[MapListController] Scene name is empty (Edit).");
+            return;
+        }
+
+        GameState.IsTestPlay = false;
+        SceneManager.LoadScene(sceneName);
+    }
+
+    /// <summary>Button_Play의 OnClick에서 호출. sceneName에 "Play" 등 씬 이름을 직접 입력.</summary>
+    public void OnClickPlay(string sceneName)
+    {
+        if (string.IsNullOrEmpty(selectedMapId))
+        {
+            Debug.LogWarning("[MapListController] No map selected (Play).");
+            return;
+        }
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            Debug.LogWarning("[MapListController] Scene name is empty (Play).");
+            return;
+        }
+
+        GameState.IsTestPlay = false;
+        SceneManager.LoadScene(sceneName);
+    }
+
+    public void OnClickCancel()
+    {
+        selectedMapId = null;
+        GameState.SelectedMapId = null;
+        if (modePopup != null)
+            modePopup.SetActive(false);
+    }
+
+    /// <summary>새 맵 만들기 버튼. sceneName에 에디터 씬 이름을 직접 입력.</summary>
+    public void OnNewMapClicked(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            Debug.LogWarning("[MapListController] Scene name is empty (NewMap).");
+            return;
+        }
+
+        selectedMapId = null;
+        GameState.IsTestPlay = false;
+        GameState.SelectedMapId = null;
+        SceneManager.LoadScene(sceneName);
+    }
+}

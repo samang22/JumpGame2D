@@ -114450,7 +114450,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileEditController
   editCamera: {fileID: 1572311074}
-  spawnMarker: {fileID: 0}
+  spawnMarker: {fileID: 468119653}
   groundTilemap: {fileID: 889495174}
   oneWayTilemap: {fileID: 1207268245}
   backgroundTilemap: {fileID: 1053842723}

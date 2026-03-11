@@ -238,6 +238,58 @@ public class TileEditController : MonoBehaviour
         return null;
     }
 
+    /// <summary>Clears all tilemaps and applies MapData (tiles + spawn position).</summary>
+    public void ApplyMapData(MapData data)
+    {
+        if (data == null)
+        {
+            Debug.LogWarning("[TileEditController] ApplyMapData: data is null.");
+            return;
+        }
+
+        // 1) 타일맵 전부 클리어
+        groundTilemap.ClearAllTiles();
+        if (oneWayTilemap != null) oneWayTilemap.ClearAllTiles();
+        if (backgroundTilemap != null) backgroundTilemap.ClearAllTiles();
+        if (gimmickTilemap != null) gimmickTilemap.ClearAllTiles();
+        if (hazardTilemap != null) hazardTilemap.ClearAllTiles();
+
+        // 2) 팔레트가 비어 있으면 먼저 로드
+        if (palette == null || palette.Count == 0)
+            LoadPaletteFromResources();
+
+        // 3) 각 레이어 복원
+        ApplyLayerData(data.groundCells, groundTilemap);
+        ApplyLayerData(data.oneWayCells, oneWayTilemap != null ? oneWayTilemap : groundTilemap);
+        ApplyLayerData(data.backgroundCells, backgroundTilemap != null ? backgroundTilemap : groundTilemap);
+        ApplyLayerData(data.gimmickCells, gimmickTilemap != null ? gimmickTilemap : groundTilemap);
+        ApplyLayerData(data.hazardCells, hazardTilemap != null ? hazardTilemap : groundTilemap);
+
+        // 4) 스폰마커 위치 복원
+        if (spawnMarker != null)
+        {
+            var pos = spawnMarker.transform.position;
+            pos.x = data.spawnX;
+            pos.y = data.spawnY;
+            spawnMarker.transform.position = pos;
+        }
+    }
+
+    private void ApplyLayerData(List<TileCellData> cells, Tilemap tilemap)
+    {
+        if (cells == null || tilemap == null) return;
+        foreach (var cell in cells)
+        {
+            var entry = FindEntryById(cell.tileId);
+            if (entry == null)
+            {
+                Debug.LogWarning($"[TileEditController] Tile not found in palette: {cell.tileId}");
+                continue;
+            }
+            tilemap.SetTile(new Vector3Int(cell.x, cell.y, 0), entry.tile);
+        }
+    }
+
     /// <summary>Builds MapData from current tilemap state. Use when starting Test Play or saving.</summary>
     public MapData CollectMapData()
     {
