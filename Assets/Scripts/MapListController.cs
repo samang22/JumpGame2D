@@ -74,7 +74,7 @@ public class MapListController : MonoBehaviour
             modePopup.SetActive(true);
     }
 
-    /// <summary>Button_EditÀÇ OnClick¿¡¼­ È£Ãâ. sceneName¿¡ "Edit" µî ¾À ÀÌ¸§À» Á÷Á¢ ÀÔ·Â.</summary>
+    /// <summary>Button_Editï¿½ï¿½ OnClickï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½. sceneNameï¿½ï¿½ "Edit" ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½.</summary>
     public void OnClickEdit(string sceneName)
     {
         if (string.IsNullOrEmpty(selectedMapId))
@@ -92,7 +92,7 @@ public class MapListController : MonoBehaviour
         SceneManager.LoadScene(sceneName);
     }
 
-    /// <summary>Button_PlayÀÇ OnClick¿¡¼­ È£Ãâ. sceneName¿¡ "Play" µî ¾À ÀÌ¸§À» Á÷Á¢ ÀÔ·Â.</summary>
+    /// <summary>Button_Playï¿½ï¿½ OnClickï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½. sceneNameï¿½ï¿½ "Play" ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½.</summary>
     public void OnClickPlay(string sceneName)
     {
         if (string.IsNullOrEmpty(selectedMapId))
@@ -118,7 +118,7 @@ public class MapListController : MonoBehaviour
             modePopup.SetActive(false);
     }
 
-    /// <summary>»õ ¸Ê ¸¸µé±â ¹öÆ°. sceneName¿¡ ¿¡µðÅÍ ¾À ÀÌ¸§À» Á÷Á¢ ÀÔ·Â.</summary>
+    /// <summary>ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°. sceneNameï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½.</summary>
     public void OnNewMapClicked(string sceneName)
     {
         if (string.IsNullOrEmpty(sceneName))

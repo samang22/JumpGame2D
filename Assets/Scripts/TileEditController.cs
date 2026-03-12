@@ -294,15 +294,15 @@ public class TileEditController : MonoBehaviour
     public MapData CollectMapData()
     {
         var data = new MapData();
-        if (spawnMarker == null)
-            return data;
 
-        var spawnT = spawnMarker.transform;
-        if (spawnT != null)
+        if (spawnMarker == null)
+            Debug.LogWarning("[TileEditController] spawnMarker is not assigned. Spawn position will not be saved.");
+        else
         {
-            data.spawnX = spawnT.position.x;
-            data.spawnY = spawnT.position.y;
+            data.spawnX = spawnMarker.transform.position.x;
+            data.spawnY = spawnMarker.transform.position.y;
         }
+
         FillLayerData(groundTilemap, data.groundCells);
         if (oneWayTilemap != null) FillLayerData(oneWayTilemap, data.oneWayCells);
         if (backgroundTilemap != null) FillLayerData(backgroundTilemap, data.backgroundCells);
