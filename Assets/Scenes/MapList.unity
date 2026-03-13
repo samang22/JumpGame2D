@@ -2040,7 +2040,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapListController
   listContent: {fileID: 2130020789}
-  mapButtonPrefab: {fileID: 782147765836355473, guid: b738272008f17754ba41a4388928d2d1, type: 3}
+  mapButtonPrefab: {fileID: 3056867380382309605, guid: 2c9b7d6f40f63454a95140dae99d22c5, type: 3}
   modePopup: {fileID: 711478700}
   popupTitleText: {fileID: 1307409837}
   saveSubFolder: Maps
@@ -2608,7 +2608,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 718390991}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99605507
+  m_Size: 0.999997
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2684,7 +2684,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.00000046828424}
+  m_AnchoredPosition: {x: 0, y: 0.0004739257}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2130020790

@@ -2190,6 +2190,8 @@ MonoBehaviour:
   mapListSceneName: MapList
   saveSubFolder: Maps
   mapNameInput: {fileID: 395041288}
+  saveFeedbackText: {fileID: 0}
+  saveFeedbackDuration: 2
 --- !u!4 &1094800918
 Transform:
   m_ObjectHideFlags: 0

@@ -51,13 +51,23 @@ public class MapListController : MonoBehaviour
             string fileName = Path.GetFileNameWithoutExtension(path);
 
             GameObject go = Instantiate(mapButtonPrefab, listContent);
-            var btn = go.GetComponent<Button>();
-            var label = go.GetComponentInChildren<TMP_Text>();
+
+            // 맵 이름 표시 (Button_Map 자식의 TMP_Text)
+            var mapBtn = go.transform.Find("Button_Map")?.GetComponent<Button>()
+                         ?? go.GetComponent<Button>();
+            var label = mapBtn != null
+                ? mapBtn.GetComponentInChildren<TMP_Text>()
+                : go.GetComponentInChildren<TMP_Text>();
             if (label != null) label.text = fileName;
 
             string mapId = fileName;
-            if (btn != null)
-                btn.onClick.AddListener(() => OnMapButtonClicked(mapId));
+            if (mapBtn != null)
+                mapBtn.onClick.AddListener(() => OnMapButtonClicked(mapId));
+
+            // 삭제 버튼 (Button_Delete)
+            var deleteBtn = go.transform.Find("Button_Delete")?.GetComponent<Button>();
+            if (deleteBtn != null)
+                deleteBtn.onClick.AddListener(() => OnDeleteButtonClicked(mapId));
         }
     }
 
@@ -108,6 +118,29 @@ public class MapListController : MonoBehaviour
 
         GameState.IsTestPlay = false;
         SceneManager.LoadScene(sceneName);
+    }
+
+    private void OnDeleteButtonClicked(string mapId)
+    {
+        ExecuteDelete(mapId);
+    }
+
+    private void ExecuteDelete(string mapId)
+    {
+        string dir = Path.Combine(Application.persistentDataPath, saveSubFolder);
+        string filePath = Path.Combine(dir, mapId + ".json");
+
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+            Debug.Log($"[MapListController] Deleted: {filePath}");
+        }
+        else
+        {
+            Debug.LogWarning($"[MapListController] File not found for deletion: {filePath}");
+        }
+
+        PopulateList();
     }
 
     public void OnClickCancel()

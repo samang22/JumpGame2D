@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.IO;
+using System.Collections;
 using TMPro;
 
 public class EditSceneController : MonoBehaviour
@@ -32,6 +33,9 @@ public class EditSceneController : MonoBehaviour
     [SerializeField] private string saveSubFolder = "Maps";
 
     [SerializeField] private TMP_InputField mapNameInput;
+    [Tooltip("저장 성공 시 잠깐 표시할 텍스트 오브젝트 (TMP_Text). 없으면 무시.")]
+    [SerializeField] private TMP_Text saveFeedbackText;
+    [SerializeField] private float saveFeedbackDuration = 2f;
 
     private void Start()
     {
@@ -175,6 +179,23 @@ public class EditSceneController : MonoBehaviour
         string json = JsonUtility.ToJson(data, prettyPrint: true);
         File.WriteAllText(path, json);
         Debug.Log($"Map saved: {path}");
+        ShowSaveFeedback($"Saved: {mapId}");
+    }
+
+    private void ShowSaveFeedback(string message)
+    {
+        if (saveFeedbackText == null) return;
+        StopCoroutine(nameof(HideFeedbackAfterDelay));
+        saveFeedbackText.text = message;
+        saveFeedbackText.gameObject.SetActive(true);
+        StartCoroutine(nameof(HideFeedbackAfterDelay));
+    }
+
+    private IEnumerator HideFeedbackAfterDelay()
+    {
+        yield return new WaitForSeconds(saveFeedbackDuration);
+        if (saveFeedbackText != null)
+            saveFeedbackText.gameObject.SetActive(false);
     }
 
     public void OnSaveClickedFromUI()
