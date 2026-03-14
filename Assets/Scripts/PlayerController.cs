@@ -6,10 +6,13 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 20f;
     [SerializeField] private float jumpForce = 10f;
-    [SerializeField] private float respawnDelay = 1f;
+    [SerializeField] private float deathJumpForce = 8f;
+    [SerializeField] private float respawnDelay = 2f;
+    [SerializeField] private float deathYThreshold = -5f;
 
     private Rigidbody2D rb;
     private Animator animator;
+    private Collider2D col;
     private bool isGrounded;
     private PlayerInputActions inputActions;
     private float moveInput;
@@ -22,6 +25,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        col = GetComponent<Collider2D>();
         inputActions = new PlayerInputActions();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
@@ -51,6 +55,9 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         if (isDead) return;
+
+        if (transform.position.y < deathYThreshold)
+            OnDead();
 
         moveInput = inputActions.Player.Move.ReadValue<float>();
 
@@ -111,21 +118,28 @@ public class PlayerController : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        rb.linearVelocity = Vector2.zero;
-        rb.gravityScale = 0f;
+        moveInput = 0f;
+        if (col != null) col.enabled = false;
+
+        animator.SetBool("isDead", true);
+        animator.SetBool("isGrounded", false);
+
+        rb.linearVelocity = new Vector2(0f, deathJumpForce);
 
         StartCoroutine(RespawnRoutine());
     }
 
     private IEnumerator RespawnRoutine()
     {
-        spriteRenderer.enabled = false;
         yield return new WaitForSeconds(respawnDelay);
 
         transform.position = spawnPosition;
         rb.linearVelocity = Vector2.zero;
-        rb.gravityScale = 1f;
-        spriteRenderer.enabled = true;
+        if (col != null) col.enabled = true;
+
+        animator.SetBool("isDead", false);
+        animator.SetBool("isGrounded", false);
+
         isGrounded = false;
         isDead = false;
     }
