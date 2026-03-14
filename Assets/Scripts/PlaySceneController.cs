@@ -119,10 +119,12 @@ public class PlaySceneController : MonoBehaviour
         // 플레이어 스폰 위치 적용
         if (player != null)
         {
-            var pos = player.position;
-            pos.x = data.spawnX;
-            pos.y = data.spawnY;
-            player.position = pos;
+            Vector3 spawnPos = new Vector3(data.spawnX, data.spawnY, player.position.z);
+            player.position = spawnPos;
+
+            var playerController = player.GetComponent<PlayerController>();
+            if (playerController != null)
+                playerController.SetSpawnPosition(spawnPos);
         }
         else
         {
