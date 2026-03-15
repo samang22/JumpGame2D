@@ -77,6 +77,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   moveSpeed: 10
   jumpForce: 10
+  deathJumpForce: 8
+  respawnDelay: 2
+  deathYThreshold: -5
 --- !u!212 &2590054947163310884
 SpriteRenderer:
   serializedVersion: 2
@@ -124,7 +127,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_MaskInteraction: 0
   m_Sprite: {fileID: -7873225780655637988, guid: 1eea0825d17efd445b712811ebbc0052, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
