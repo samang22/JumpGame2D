@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.SceneManagement;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -20,6 +21,11 @@ public class PlaySceneController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform player;
     [SerializeField] private CameraFollow cameraFollow;
+    [Tooltip("GoalMarker 프리팹. 맵 로드 시 goalX/Y 위치에 자동 생성됨.")]
+    [SerializeField] private GoalMarker goalMarkerPrefab;
+
+    [Header("Clear UI")]
+    [SerializeField] private GameObject clearPanel;
 
     [Header("Settings")]
     [SerializeField] private string resourcesPalettePath = "Tiles";
@@ -27,9 +33,12 @@ public class PlaySceneController : MonoBehaviour
     [SerializeField] private string mapListSceneName = "MapList";
 
     private List<TilePaletteEntry> palette = new List<TilePaletteEntry>();
+    private GoalMarker goalMarker;
 
     private void Start()
     {
+        if (clearPanel != null) clearPanel.SetActive(false);
+
         if (string.IsNullOrEmpty(GameState.SelectedMapId))
         {
             Debug.LogWarning("[PlaySceneController] SelectedMapId is empty. No map to load.");
@@ -130,6 +139,50 @@ public class PlaySceneController : MonoBehaviour
         {
             Debug.LogWarning("[PlaySceneController] Player is not assigned. Spawn position not applied.");
         }
+
+        // 골 마커 생성
+        if (goalMarkerPrefab != null)
+        {
+            if (goalMarker != null)
+                Destroy(goalMarker.gameObject);
+
+            Vector3 spawnPos = new Vector3(data.goalX, data.goalY, 0f);
+            goalMarker = Instantiate(goalMarkerPrefab, spawnPos, Quaternion.identity);
+            goalMarker.ResetGoal();
+            goalMarker.OnGoalReached += OnGoalReached;
+        }
+        else
+        {
+            Debug.LogWarning("[PlaySceneController] goalMarkerPrefab is not assigned.");
+        }
+    }
+
+    private void OnGoalReached()
+    {
+        if (clearPanel != null)
+            clearPanel.SetActive(true);
+
+        var playerController = player != null ? player.GetComponent<PlayerController>() : null;
+        if (playerController != null)
+            playerController.enabled = false;
+
+        StartCoroutine(ReturnToMapListRoutine());
+    }
+
+    [SerializeField] private float clearToMapListDelay = 2f;
+
+    private IEnumerator ReturnToMapListRoutine()
+    {
+        yield return new WaitForSeconds(clearToMapListDelay);
+        if (!string.IsNullOrEmpty(mapListSceneName))
+            SceneManager.LoadScene(mapListSceneName);
+    }
+
+    public void OnClearBackToMapList()
+    {
+        StopCoroutine(nameof(ReturnToMapListRoutine));
+        if (!string.IsNullOrEmpty(mapListSceneName))
+            SceneManager.LoadScene(mapListSceneName);
     }
 
     private void ApplyLayerData(List<TileCellData> cells, Tilemap tilemap)

@@ -1316,85 +1316,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 509640444}
   m_CullTransparentMesh: 1
---- !u!1001 &512114190
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 5389856099126524384, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_Name
-      value: GoalMarker
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8307677451776259702, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5389856099126524384, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 512114192}
-  m_SourcePrefab: {fileID: 100100000, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
---- !u!1 &512114191 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5389856099126524384, guid: b89c6c2de80b6d844a05c31e4440285b, type: 3}
-  m_PrefabInstance: {fileID: 512114190}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &512114192
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 512114191}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea695483b897cde4db7788d6d14bc156, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawnDraggable
-  grid: {fileID: 1580757462}
-  tilemap: {fileID: 0}
 --- !u!1001 &588470869
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1410,10 +1331,6 @@ PrefabInstance:
     - target: {fileID: 217002143803717622, guid: a7e6bd27099a86c43b52037bd722bd6b, type: 3}
       propertyPath: m_IsActive
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 217002143803717622, guid: a7e6bd27099a86c43b52037bd722bd6b, type: 3}
-      propertyPath: m_TagString
-      value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 5564849536569484711, guid: a7e6bd27099a86c43b52037bd722bd6b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -115273,7 +115190,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TileEditController
   editCamera: {fileID: 1572311074}
   spawnMarker: {fileID: 468119653}
-  goalMarker: {fileID: 512114191}
+  goalMarker: {fileID: 0}
   groundTilemap: {fileID: 889495174}
   oneWayTilemap: {fileID: 1207268245}
   backgroundTilemap: {fileID: 1053842723}
@@ -116140,4 +116057,3 @@ SceneRoots:
   - {fileID: 1094800918}
   - {fileID: 1191778074}
   - {fileID: 468119657}
-  - {fileID: 512114190}

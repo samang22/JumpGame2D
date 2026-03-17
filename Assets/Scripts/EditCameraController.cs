@@ -12,16 +12,9 @@ public class EditCameraController : MonoBehaviour
     [SerializeField] private float minZoom = 2f;
     [SerializeField] private float maxZoom = 20f;
 
-    private CameraFollow _cameraFollow;
-
-    private void Awake()
-    {
-        _cameraFollow = GetComponent<CameraFollow>();
-    }
-
     private void Update()
     {
-        if (_cameraFollow != null && _cameraFollow.enabled) return;
+        if (GameState.IsTestPlay) return;
 
         HandleMove();
         HandleZoom();

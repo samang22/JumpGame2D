@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 spawnPosition;
     private bool isDead;
+    private bool isInGoalSequence;
 
     void Awake()
     {
@@ -54,7 +55,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (isDead) return;
+        if (isDead || isInGoalSequence) return;
 
         if (transform.position.y < deathYThreshold)
             OnDead();
@@ -73,7 +74,7 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (isDead) return;
+        if (isDead || isInGoalSequence) return;
 
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
     }
@@ -111,6 +112,32 @@ public class PlayerController : MonoBehaviour
     {
         if (other.CompareTag("Hazard"))
             OnDead();
+    }
+
+    /// <summary>GoalMarker에서 호출. 폴대 잡기 애니메이션 진입.</summary>
+    public void EnterGrabPole()
+    {
+        isInGoalSequence = true;
+        moveInput = 0f;
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = 0f;
+        if (col != null) col.enabled = false;
+
+        animator.SetFloat("speed", 0f);
+        animator.SetBool("isGrounded", false);
+        animator.SetBool("isDead", false);
+        animator.SetBool("victory", false);
+        animator.SetBool("grabPole", true);
+    }
+
+    /// <summary>GoalMarker에서 호출. 바닥 도달 후 승리 애니메이션 진입.</summary>
+    public void EnterVictory()
+    {
+        animator.SetBool("grabPole", false);
+        animator.SetBool("victory", true);
+
+        if (col != null) col.enabled = true;
+        rb.gravityScale = 1f;
     }
 
     private void OnDead()

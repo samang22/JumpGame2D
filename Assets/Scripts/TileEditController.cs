@@ -10,6 +10,8 @@ public class TileEditController : MonoBehaviour
     [SerializeField] private Camera editCamera;
     [Tooltip("Player or spawn marker Transform. Position is saved as spawn in MapData.")]
     [SerializeField] private GameObject spawnMarker;
+    [Tooltip("Goal marker GameObject. Position is saved as goal in MapData.")]
+    [SerializeField] private GameObject goalMarker;
     [SerializeField] private Tilemap groundTilemap;
     [SerializeField] private Tilemap oneWayTilemap;
     [SerializeField] private Tilemap backgroundTilemap;
@@ -273,6 +275,15 @@ public class TileEditController : MonoBehaviour
             pos.y = data.spawnY;
             spawnMarker.transform.position = pos;
         }
+
+        // 5) 골마커 위치 복원
+        if (goalMarker != null)
+        {
+            var pos = goalMarker.transform.position;
+            pos.x = data.goalX;
+            pos.y = data.goalY;
+            goalMarker.transform.position = pos;
+        }
     }
 
     private void ApplyLayerData(List<TileCellData> cells, Tilemap tilemap)
@@ -301,6 +312,14 @@ public class TileEditController : MonoBehaviour
         {
             data.spawnX = spawnMarker.transform.position.x;
             data.spawnY = spawnMarker.transform.position.y;
+        }
+
+        if (goalMarker == null)
+            Debug.LogWarning("[TileEditController] goalMarker is not assigned. Goal position will not be saved.");
+        else
+        {
+            data.goalX = goalMarker.transform.position.x;
+            data.goalY = goalMarker.transform.position.y;
         }
 
         FillLayerData(groundTilemap, data.groundCells);

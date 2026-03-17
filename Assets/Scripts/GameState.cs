@@ -28,6 +28,11 @@ public class MapData
     /// <summary>Player spawn position (world Y).</summary>
     public float spawnY;
 
+    /// <summary>Goal marker position (world X).</summary>
+    public float goalX;
+    /// <summary>Goal marker position (world Y).</summary>
+    public float goalY;
+
     public List<TileCellData> groundCells = new List<TileCellData>();
     public List<TileCellData> oneWayCells = new List<TileCellData>();
     public List<TileCellData> backgroundCells = new List<TileCellData>();
