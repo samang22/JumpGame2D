@@ -51,7 +51,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 2
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -75,11 +75,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d929226d813b004abc507dcc1402162, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  moveSpeed: 10
+  maxSpeed: 8
+  acceleration: 60
+  deceleration: 80
+  skidDeceleration: 5
   jumpForce: 10
   deathJumpForce: 8
   respawnDelay: 2
   deathYThreshold: -5
+  runThreshold: 0.8
+  smallOverride: {fileID: 0}
+  bigOverride: {fileID: 22100000, guid: 344b1cda93a7fbc4daea82e10460b14c, type: 2}
+  flowerOverride: {fileID: 22100000, guid: 113576f1384ab564ca136fd84981729a, type: 2}
+  invincibleDuration: 2
 --- !u!212 &2590054947163310884
 SpriteRenderer:
   serializedVersion: 2

@@ -89,6 +89,38 @@ public class TilePaletteUI : MonoBehaviour
                 btn.onClick.AddListener(() => tileEditController.ClearPaintSelection());
         }
 
+        // 파워업(버섯/꽃 등) — 타일과 동일 패널에서 선택
+        var powerUpList = tileEditController != null ? tileEditController.GetPowerUpPalette() : null;
+        if (powerUpList != null && powerUpList.Count > 0)
+        {
+            if (useSectionGroup && sectionGroupPrefab != null)
+            {
+                var puGroup = Instantiate(sectionGroupPrefab, buttonContainer);
+                var tmpPu = puGroup.GetComponentInChildren<TMP_Text>();
+                if (tmpPu != null) tmpPu.text = "Items";
+                else
+                {
+                    var legPu = puGroup.GetComponentInChildren<Text>();
+                    if (legPu != null) legPu.text = "Items";
+                }
+                Transform puGrid = puGroup.transform.Find(gridRootChildName);
+                if (puGrid == null) puGrid = puGroup.transform;
+                foreach (var e in powerUpList)
+                {
+                    if (e == null || e.prefab == null) continue;
+                    AddPowerUpButton(e, puGrid);
+                }
+            }
+            else
+            {
+                foreach (var e in powerUpList)
+                {
+                    if (e == null || e.prefab == null) continue;
+                    AddPowerUpButton(e, buttonContainer);
+                }
+            }
+        }
+
         if (useSectionGroup)
         {
             foreach (var layer in layerOrder)
@@ -158,5 +190,34 @@ public class TilePaletteUI : MonoBehaviour
         TileBase tileToSet = entry.tile;
         if (btn != null)
             btn.onClick.AddListener(() => tileEditController.SetPaintTile(tileToSet));
+    }
+
+    private void AddPowerUpButton(PowerUpPaletteEntry entry, Transform parent)
+    {
+        GameObject go = Instantiate(buttonPrefab, parent);
+        Button btn = go.GetComponent<Button>();
+        if (btn == null) btn = go.GetComponentInChildren<Button>();
+
+        Image img = go.GetComponentInChildren<Image>();
+        if (img != null)
+        {
+            Sprite sprite = entry.GetDisplaySprite();
+            if (sprite != null)
+                img.sprite = sprite;
+        }
+
+        string label = entry.GetLabel();
+        var tmpText = go.GetComponentInChildren<TMP_Text>();
+        if (tmpText != null)
+            tmpText.text = label;
+        else
+        {
+            var legacyText = go.GetComponentInChildren<Text>();
+            if (legacyText != null) legacyText.text = label;
+        }
+
+        string id = entry.id;
+        if (btn != null && tileEditController != null)
+            btn.onClick.AddListener(() => tileEditController.SetPlacePowerUpById(id));
     }
 }

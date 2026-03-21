@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 
 /// <summary>
 /// Play scene entry point.
@@ -26,6 +27,16 @@ public class PlaySceneController : MonoBehaviour
 
     [Header("Clear UI")]
     [SerializeField] private GameObject clearPanel;
+    [SerializeField] private TMP_Text clearTimeText;
+
+    [Header("Timer")]
+    [SerializeField] private GameTimer gameTimer;
+    [SerializeField] private GameObject timerTextObject;
+
+    [Header("Power-ups (맵 JSON의 prefabId와 동일한 id로 등록)")]
+    [SerializeField] private List<PowerUpPaletteEntry> powerUpPalette = new List<PowerUpPaletteEntry>();
+    [Tooltip("플레이 씬에서 생성된 파워업의 부모. 비어 있으면 씬 루트에 생성.")]
+    [SerializeField] private Transform powerUpsRoot;
 
     [Header("Settings")]
     [SerializeField] private string resourcesPalettePath = "Tiles";
@@ -34,6 +45,11 @@ public class PlaySceneController : MonoBehaviour
 
     private List<TilePaletteEntry> palette = new List<TilePaletteEntry>();
     private GoalMarker goalMarker;
+
+    private void Awake()
+    {
+        GameState.IsMapEditMode = false;
+    }
 
     private void Start()
     {
@@ -49,6 +65,7 @@ public class PlaySceneController : MonoBehaviour
         LoadMap();
 
         if (cameraFollow != null) cameraFollow.enabled = true;
+        if (gameTimer != null) gameTimer.StartTimer();
     }
 
     private void LoadPalette()
@@ -155,12 +172,51 @@ public class PlaySceneController : MonoBehaviour
         {
             Debug.LogWarning("[PlaySceneController] goalMarkerPrefab is not assigned.");
         }
+
+        ApplyPowerUpsFromMapData(data);
+    }
+
+    private void ApplyPowerUpsFromMapData(MapData data)
+    {
+        if (powerUpsRoot != null)
+        {
+            for (int i = powerUpsRoot.childCount - 1; i >= 0; i--)
+                Destroy(powerUpsRoot.GetChild(i).gameObject);
+        }
+
+        if (data == null || data.powerUps == null || data.powerUps.Count == 0) return;
+
+        foreach (var p in data.powerUps)
+        {
+            if (p == null || string.IsNullOrEmpty(p.prefabId)) continue;
+            var entry = FindPowerUpPaletteEntry(p.prefabId);
+            if (entry == null || entry.prefab == null)
+            {
+                Debug.LogWarning($"[PlaySceneController] Power-up id not in palette: {p.prefabId}");
+                continue;
+            }
+            Instantiate(entry.prefab, new Vector3(p.x, p.y, 0f), Quaternion.identity, powerUpsRoot);
+        }
+    }
+
+    private PowerUpPaletteEntry FindPowerUpPaletteEntry(string id)
+    {
+        if (string.IsNullOrEmpty(id) || powerUpPalette == null) return null;
+        foreach (var e in powerUpPalette)
+            if (e != null && e.id == id) return e;
+        return null;
     }
 
     private void OnGoalReached()
     {
+        if (gameTimer != null) gameTimer.StopTimer();
+        if (timerTextObject != null) timerTextObject.SetActive(false);
+
         if (clearPanel != null)
             clearPanel.SetActive(true);
+
+        if (clearTimeText != null && gameTimer != null)
+            clearTimeText.text = $"Time: {gameTimer.GetFormattedTime()}";
 
         var playerController = player != null ? player.GetComponent<PlayerController>() : null;
         if (playerController != null)

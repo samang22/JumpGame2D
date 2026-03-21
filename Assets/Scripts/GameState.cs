@@ -14,6 +14,9 @@ public static class GameState
 
     /// <summary>When IsTestPlay is true, the in-memory map data passed from Edit. Used by Play scene to restore tilemaps.</summary>
     public static MapData TestPlayMapData;
+
+    /// <summary>Edit 씬에서 타일 편집 중일 때 true(Test Play 아님). 파워업 등은 이때 움직이지 않음.</summary>
+    public static bool IsMapEditMode;
 }
 
 /// <summary>
@@ -38,6 +41,17 @@ public class MapData
     public List<TileCellData> backgroundCells = new List<TileCellData>();
     public List<TileCellData> gimmickCells = new List<TileCellData>();
     public List<TileCellData> hazardCells = new List<TileCellData>();
+
+    /// <summary>에디트에서 배치한 파워업(버섯/꽃 등). prefabId는 PowerUpPaletteEntry.id와 일치해야 함.</summary>
+    public List<PlacedPowerUpData> powerUps = new List<PlacedPowerUpData>();
+}
+
+[System.Serializable]
+public class PlacedPowerUpData
+{
+    public string prefabId;
+    public float x;
+    public float y;
 }
 
 [System.Serializable]

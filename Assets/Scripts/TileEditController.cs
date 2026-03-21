@@ -23,10 +23,19 @@ public class TileEditController : MonoBehaviour
     [SerializeField] private string resourcesPalettePath = "Tiles";
     [SerializeField] private TilePaletteUI paletteUI;
 
+    [Header("Power-ups (palette UI)")]
+    [Tooltip("버섯/꽃 등 프리팹. id는 저장 JSON의 prefabId와 동일해야 Play 씬에서도 복원됨.")]
+    [SerializeField] private List<PowerUpPaletteEntry> powerUpPalette;
+    [Tooltip("에디트에서 배치한 파워업의 부모. 비어 있으면 배치·저장이 동작하지 않음.")]
+    [SerializeField] private Transform placedPowerUpsRoot;
+
     [Header("Current State")]
     [SerializeField] private TileBase paintTile;    // currently selected tile for painting
     [SerializeField] private string paintTileId;    // ID of the currently selected tile (for save/load)
     [SerializeField] private bool eraseMode;        // true = erase instead of paint
+
+    /// <summary>선택된 파워업 팔레트 id. 비어 있지 않으면 클릭 시 해당 프리팹을 셀 중앙에 배치.</summary>
+    private string selectedPowerUpId = "";
 
     private Tilemap GetTilemapForLayer(TileLayerType layer)
     {
@@ -60,28 +69,43 @@ public class TileEditController : MonoBehaviour
         bool leftPressed = Mouse.current.leftButton.isPressed;
         bool rightPressed = Mouse.current.rightButton.isPressed;
 
-        // 플레이어(스폰) 위 클릭 시 타일 그리기/지우기 하지 않음 (드래그 배치와 겹침 방지)
+        // 스폰 마커 위에서는 타일 칠/지우기만 막음. 파워업 배치는 허용.
+        bool pointerOverSpawn = false;
         if (spawnMarker != null)
         {
             Vector3 w = editCamera.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0f));
             var hit = Physics2D.OverlapPoint(new Vector2(w.x, w.y));
-            if (hit != null && spawnMarker != null &&
+            if (hit != null &&
                (hit.transform == spawnMarker.transform || hit.transform.IsChildOf(spawnMarker.transform)))
-            {
-                return;
-            }
+                pointerOverSpawn = true;
+        }
+
+        // 파워업: 마우스 업(버튼을 뗀 프레임)에만 설치 — 뗄 때 커서가 있는 셀에 배치
+        if (Mouse.current.leftButton.wasReleasedThisFrame && !eraseMode && !string.IsNullOrEmpty(selectedPowerUpId))
+        {
+            if (!pointerOverSpawn)
+                PlacePowerUpAtCell(cellPos);
         }
 
         if (leftPressed)
         {
             if (eraseMode)
-                EraseAt(cellPos);
-            else
-                PaintAt(cellPos);
+            {
+                if (!pointerOverSpawn)
+                    EraseAt(cellPos);
+                ErasePowerUpsAtCell(cellPos);
+            }
+            else if (paintTile != null)
+            {
+                if (!pointerOverSpawn)
+                    PaintAt(cellPos);
+            }
         }
         else if (rightPressed)
         {
-            EraseAt(cellPos);
+            if (!pointerOverSpawn)
+                EraseAt(cellPos);
+            ErasePowerUpsAtCell(cellPos);
         }
     }
 
@@ -113,6 +137,7 @@ public class TileEditController : MonoBehaviour
     {
         paintTile = tile;
         paintTileId = FindEntryByTile(tile)?.id ?? "";
+        selectedPowerUpId = "";
     }
 
     public void SetPaintTileById(string id)
@@ -121,9 +146,40 @@ public class TileEditController : MonoBehaviour
         if (entry == null) return;
         paintTile = entry.tile;
         paintTileId = id;
+        selectedPowerUpId = "";
     }
 
-    public void SetEraseMode(bool on) { eraseMode = on; }
+    public void SetEraseMode(bool on)
+    {
+        eraseMode = on;
+        if (on) selectedPowerUpId = "";
+    }
+
+    /// <summary>타일 팔레트에서 파워업 버튼 클릭 시 호출. id는 PowerUpPaletteEntry.id와 동일.</summary>
+    public void SetPlacePowerUpById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || powerUpPalette == null)
+        {
+            selectedPowerUpId = "";
+            return;
+        }
+        foreach (var e in powerUpPalette)
+        {
+            if (e == null || e.prefab == null) continue;
+            if (e.id != id) continue;
+            selectedPowerUpId = id;
+            paintTile = null;
+            paintTileId = "";
+            eraseMode = false;
+            return;
+        }
+        selectedPowerUpId = "";
+    }
+
+    public void ClearPowerUpSelection() => selectedPowerUpId = "";
+
+    /// <summary>TilePaletteUI에서 파워업 섹션을 그릴 때 사용.</summary>
+    public IReadOnlyList<PowerUpPaletteEntry> GetPowerUpPalette() => powerUpPalette ?? (powerUpPalette = new List<PowerUpPaletteEntry>());
 
     /// <summary>Returns the current palette list. Creates an empty list if needed.</summary>
     public IReadOnlyList<TilePaletteEntry> GetPalette() => palette ?? (palette = new List<TilePaletteEntry>());
@@ -284,6 +340,11 @@ public class TileEditController : MonoBehaviour
             pos.y = data.goalY;
             goalMarker.transform.position = pos;
         }
+
+        // 6) 파워업 배치 복원
+        if (data.powerUps == null) data.powerUps = new List<PlacedPowerUpData>();
+        ClearPlacedPowerUps();
+        ApplyPowerUpsFromData(data.powerUps);
     }
 
     private void ApplyLayerData(List<TileCellData> cells, Tilemap tilemap)
@@ -327,6 +388,22 @@ public class TileEditController : MonoBehaviour
         if (backgroundTilemap != null) FillLayerData(backgroundTilemap, data.backgroundCells);
         if (gimmickTilemap != null) FillLayerData(gimmickTilemap, data.gimmickCells);
         if (hazardTilemap != null) FillLayerData(hazardTilemap, data.hazardCells);
+
+        data.powerUps = new List<PlacedPowerUpData>();
+        if (placedPowerUpsRoot != null)
+        {
+            foreach (var m in placedPowerUpsRoot.GetComponentsInChildren<PlacedPowerUpEditMarker>(true))
+            {
+                var t = m.transform.position;
+                data.powerUps.Add(new PlacedPowerUpData
+                {
+                    prefabId = m.paletteId,
+                    x = t.x,
+                    y = t.y
+                });
+            }
+        }
+
         return data;
     }
 
@@ -353,5 +430,66 @@ public class TileEditController : MonoBehaviour
         paintTile = null;
         paintTileId = "";
         eraseMode = false;
+        selectedPowerUpId = "";
+    }
+
+    void PlacePowerUpAtCell(Vector3Int cell)
+    {
+        if (placedPowerUpsRoot == null) return;
+        var entry = FindPowerUpEntryById(selectedPowerUpId);
+        if (entry == null || entry.prefab == null) return;
+
+        Vector3 pos = groundTilemap.GetCellCenterWorld(cell);
+        pos.z = 0f;
+        var go = Instantiate(entry.prefab, pos, Quaternion.identity, placedPowerUpsRoot);
+        var marker = go.GetComponent<PlacedPowerUpEditMarker>();
+        if (marker == null) marker = go.AddComponent<PlacedPowerUpEditMarker>();
+        marker.paletteId = entry.id;
+    }
+
+    void ErasePowerUpsAtCell(Vector3Int cell)
+    {
+        if (placedPowerUpsRoot == null) return;
+        Bounds b = new Bounds(groundTilemap.GetCellCenterWorld(cell), (Vector3)groundTilemap.cellSize);
+        var markers = placedPowerUpsRoot.GetComponentsInChildren<PlacedPowerUpEditMarker>(true);
+        foreach (var m in markers)
+        {
+            if (m != null && b.Contains(m.transform.position))
+                Destroy(m.gameObject);
+        }
+    }
+
+    void ClearPlacedPowerUps()
+    {
+        if (placedPowerUpsRoot == null) return;
+        for (int i = placedPowerUpsRoot.childCount - 1; i >= 0; i--)
+            Destroy(placedPowerUpsRoot.GetChild(i).gameObject);
+    }
+
+    void ApplyPowerUpsFromData(List<PlacedPowerUpData> list)
+    {
+        if (list == null || placedPowerUpsRoot == null) return;
+        foreach (var p in list)
+        {
+            if (p == null || string.IsNullOrEmpty(p.prefabId)) continue;
+            var entry = FindPowerUpEntryById(p.prefabId);
+            if (entry == null || entry.prefab == null)
+            {
+                Debug.LogWarning($"[TileEditController] Power-up prefab not in palette: {p.prefabId}");
+                continue;
+            }
+            var go = Instantiate(entry.prefab, new Vector3(p.x, p.y, 0f), Quaternion.identity, placedPowerUpsRoot);
+            var marker = go.GetComponent<PlacedPowerUpEditMarker>();
+            if (marker == null) marker = go.AddComponent<PlacedPowerUpEditMarker>();
+            marker.paletteId = entry.id;
+        }
+    }
+
+    PowerUpPaletteEntry FindPowerUpEntryById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || powerUpPalette == null) return null;
+        foreach (var e in powerUpPalette)
+            if (e != null && e.id == id) return e;
+        return null;
     }
 }

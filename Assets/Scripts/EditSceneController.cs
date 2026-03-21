@@ -33,9 +33,21 @@ public class EditSceneController : MonoBehaviour
     [SerializeField] private string saveSubFolder = "Maps";
 
     [SerializeField] private TMP_InputField mapNameInput;
+    [Tooltip("TestPlay 시작 시 복구할 카메라 기본 줌 값")]
+    [SerializeField] private float defaultOrthographicSize = 5f;
     [Tooltip("저장 성공 시 잠깐 표시할 텍스트 오브젝트 (TMP_Text). 없으면 무시.")]
     [SerializeField] private TMP_Text saveFeedbackText;
     [SerializeField] private float saveFeedbackDuration = 2f;
+
+    private void Awake()
+    {
+        GameState.IsMapEditMode = true;
+    }
+
+    private void OnDestroy()
+    {
+        GameState.IsMapEditMode = false;
+    }
 
     private void Start()
     {
@@ -77,6 +89,7 @@ public class EditSceneController : MonoBehaviour
     public void OnTestPlayClicked()
     {
         GameState.IsTestPlay = true;
+        GameState.IsMapEditMode = false;
         GameState.SelectedMapId = null;
 
         if (tileEditController != null) tileEditController.enabled = false;
@@ -97,7 +110,12 @@ public class EditSceneController : MonoBehaviour
             if (player != null) player.SetActive(true);
             SetPlayerBehavioursEnabled(true);
         }
-        if (cameraFollow != null) cameraFollow.enabled = true;
+        if (cameraFollow != null)
+        {
+            cameraFollow.enabled = true;
+            cameraFollow.SnapToTarget();
+            Camera.main.orthographicSize = defaultOrthographicSize;
+        }
         if (backToEditUIRoot != null) backToEditUIRoot.SetActive(true);
 
         SetTestPlayButtonLabel("Return to Edit");
@@ -107,6 +125,7 @@ public class EditSceneController : MonoBehaviour
     public void OnBackToEditClicked()
     {
         GameState.IsTestPlay = false;
+        GameState.IsMapEditMode = true;
 
         if (tileEditController != null) tileEditController.enabled = true;
         if (spawnMarker != null)

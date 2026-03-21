@@ -11,6 +11,17 @@ public class CameraFollow : MonoBehaviour
 
     private Vector3 _velocity;
 
+    public void SnapToTarget()
+    {
+        if (target == null)
+        {
+            Debug.LogWarning("[CameraFollow] target is null!");
+            return;
+        }
+        _velocity = Vector3.zero;
+        transform.position = target.position + offset;
+    }
+
     private void LateUpdate()
     {
         if (target == null) return;

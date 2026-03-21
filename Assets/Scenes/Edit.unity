@@ -1486,6 +1486,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawnDraggable
   grid: {fileID: 1580757462}
   tilemap: {fileID: 0}
+--- !u!4 &588470877 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5564849536569484711, guid: a7e6bd27099a86c43b52037bd722bd6b, type: 3}
+  m_PrefabInstance: {fileID: 588470869}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &639705832
 GameObject:
   m_ObjectHideFlags: 0
@@ -2385,13 +2390,14 @@ MonoBehaviour:
   player: {fileID: 588470870}
   spawnMarker: {fileID: 468119653}
   playerBehavioursToDisableInEditMode: []
-  cameraFollow: {fileID: 1191778073}
+  cameraFollow: {fileID: 1572311078}
   backToEditUIRoot: {fileID: 0}
   testPlayButtonLabel: {fileID: 1848881863}
   testPlayButtonLabelLegacy: {fileID: 0}
   mapListSceneName: MapList
   saveSubFolder: Maps
   mapNameInput: {fileID: 395041288}
+  defaultOrthographicSize: 5
   saveFeedbackText: {fileID: 0}
   saveFeedbackDuration: 2
 --- !u!4 &1094800918
@@ -2542,7 +2548,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1105943051}
   m_CullTransparentMesh: 1
---- !u!1 &1191778072
+--- !u!1 &1171375338
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2550,40 +2556,24 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1191778074}
-  - component: {fileID: 1191778073}
+  - component: {fileID: 1171375339}
   m_Layer: 0
-  m_Name: CameraFollow
+  m_Name: PlacePowerUps
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1191778073
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1191778072}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79bcf3f1630c1094b9ee90f6435c6a2b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
-  target: {fileID: 0}
-  offset: {x: 0, y: 0, z: -10}
-  smoothTime: 0.2
---- !u!4 &1191778074
+--- !u!4 &1171375339
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1191778072}
+  m_GameObject: {fileID: 1171375338}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 147.58093, y: 352.37036, z: 0}
+  m_LocalPosition: {x: 0.47128, y: -0.99209, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3221,8 +3211,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79bcf3f1630c1094b9ee90f6435c6a2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
-  target: {fileID: 0}
-  offset: {x: 0, y: 0, z: -10}
+  target: {fileID: 588470877}
+  offset: {x: 0, y: 2, z: -10}
   smoothTime: 0.2
 --- !u!1 &1580757460
 GameObject:
@@ -115292,6 +115282,16 @@ MonoBehaviour:
     layer: 0
   resourcesPalettePath: Tiles
   paletteUI: {fileID: 1877003717}
+  powerUpPalette:
+  - id: Mushroom
+    displayName: Mushroom
+    prefab: {fileID: 531538783173130314, guid: d8a5feba9ff16164cb4cbd3808c74e25, type: 3}
+    icon: {fileID: 4315506946141470425, guid: e415886e727076043b8e9f3a0b21e579, type: 3}
+  - id: Flower
+    displayName: Flower
+    prefab: {fileID: 7393338314284507205, guid: 5ee315e7c8962f64a9510df92c5a59f5, type: 3}
+    icon: {fileID: 3373568495408583166, guid: 062a9c8775245034e8e1b25005a8a34e, type: 3}
+  placedPowerUpsRoot: {fileID: 1171375339}
   paintTile: {fileID: 0}
   paintTileId: 
   eraseMode: 0
@@ -116134,10 +116134,10 @@ SceneRoots:
   - {fileID: 1572311075}
   - {fileID: 588470869}
   - {fileID: 1580757461}
-  - {fileID: 1692526299}
   - {fileID: 2100338066}
+  - {fileID: 1692526299}
   - {fileID: 2108639956}
   - {fileID: 1094800918}
-  - {fileID: 1191778074}
   - {fileID: 468119657}
   - {fileID: 512114190}
+  - {fileID: 1171375339}

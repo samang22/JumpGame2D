@@ -70,7 +70,11 @@ public class GoalMarker : MonoBehaviour
         var playerController = playerObj.GetComponent<PlayerController>();
         var rb = playerObj.GetComponent<Rigidbody2D>();
 
-        // 1. 마리오 깃발 표시
+        // 1. 타이머 정지
+        var gameTimer = FindFirstObjectByType<GameTimer>();
+        if (gameTimer != null) gameTimer.StopTimer();
+
+        // 마리오 깃발 표시
         if (marioFlag != null)
             marioFlag.gameObject.SetActive(true);
 
