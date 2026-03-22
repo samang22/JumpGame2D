@@ -38,6 +38,11 @@ public class PlaySceneController : MonoBehaviour
     [Tooltip("플레이 씬에서 생성된 파워업의 부모. 비어 있으면 씬 루트에 생성.")]
     [SerializeField] private Transform powerUpsRoot;
 
+    [Header("Question blocks")]
+    [SerializeField] private List<QuestionBlockPaletteEntry> questionBlockPalette = new List<QuestionBlockPaletteEntry>();
+    [Tooltip("플레이 씬에서 생성된 물음표 블록의 부모. 비어 있으면 씬 루트에 생성.")]
+    [SerializeField] private Transform questionBlocksRoot;
+
     [Header("Settings")]
     [SerializeField] private string resourcesPalettePath = "Tiles";
     [SerializeField] private string saveSubFolder = "Maps";
@@ -174,6 +179,7 @@ public class PlaySceneController : MonoBehaviour
         }
 
         ApplyPowerUpsFromMapData(data);
+        ApplyQuestionBlocksFromMapData(data);
     }
 
     private void ApplyPowerUpsFromMapData(MapData data)
@@ -199,10 +205,41 @@ public class PlaySceneController : MonoBehaviour
         }
     }
 
+    private void ApplyQuestionBlocksFromMapData(MapData data)
+    {
+        if (questionBlocksRoot != null)
+        {
+            for (int i = questionBlocksRoot.childCount - 1; i >= 0; i--)
+                Destroy(questionBlocksRoot.GetChild(i).gameObject);
+        }
+
+        if (data == null || data.questionBlocks == null || data.questionBlocks.Count == 0) return;
+
+        foreach (var p in data.questionBlocks)
+        {
+            if (p == null || string.IsNullOrEmpty(p.prefabId)) continue;
+            var entry = FindQuestionBlockPaletteEntry(p.prefabId);
+            if (entry == null || entry.prefab == null)
+            {
+                Debug.LogWarning($"[PlaySceneController] Question block id not in palette: {p.prefabId}");
+                continue;
+            }
+            Instantiate(entry.prefab, new Vector3(p.x, p.y, 0f), Quaternion.identity, questionBlocksRoot);
+        }
+    }
+
     private PowerUpPaletteEntry FindPowerUpPaletteEntry(string id)
     {
         if (string.IsNullOrEmpty(id) || powerUpPalette == null) return null;
         foreach (var e in powerUpPalette)
+            if (e != null && e.id == id) return e;
+        return null;
+    }
+
+    private QuestionBlockPaletteEntry FindQuestionBlockPaletteEntry(string id)
+    {
+        if (string.IsNullOrEmpty(id) || questionBlockPalette == null) return null;
+        foreach (var e in questionBlockPalette)
             if (e != null && e.id == id) return e;
         return null;
     }

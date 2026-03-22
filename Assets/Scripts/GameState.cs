@@ -44,10 +44,21 @@ public class MapData
 
     /// <summary>에디트에서 배치한 파워업(버섯/꽃 등). prefabId는 PowerUpPaletteEntry.id와 일치해야 함.</summary>
     public List<PlacedPowerUpData> powerUps = new List<PlacedPowerUpData>();
+
+    /// <summary>에디트에서 배치한 물음표 블록. prefabId는 QuestionBlockPaletteEntry.id와 일치해야 함.</summary>
+    public List<PlacedQuestionBlockData> questionBlocks = new List<PlacedQuestionBlockData>();
 }
 
 [System.Serializable]
 public class PlacedPowerUpData
+{
+    public string prefabId;
+    public float x;
+    public float y;
+}
+
+[System.Serializable]
+public class PlacedQuestionBlockData
 {
     public string prefabId;
     public float x;

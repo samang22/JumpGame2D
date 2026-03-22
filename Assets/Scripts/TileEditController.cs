@@ -29,6 +29,12 @@ public class TileEditController : MonoBehaviour
     [Tooltip("에디트에서 배치한 파워업의 부모. 비어 있으면 배치·저장이 동작하지 않음.")]
     [SerializeField] private Transform placedPowerUpsRoot;
 
+    [Header("Question blocks (palette UI)")]
+    [Tooltip("물음표 블록 프리팹. id는 저장 JSON의 prefabId와 동일해야 Play 씬에서도 복원됨.")]
+    [SerializeField] private List<QuestionBlockPaletteEntry> questionBlockPalette;
+    [Tooltip("에디트에서 배치한 물음표 블록의 부모. 비어 있으면 배치·저장이 동작하지 않음.")]
+    [SerializeField] private Transform placedQuestionBlocksRoot;
+
     [Header("Current State")]
     [SerializeField] private TileBase paintTile;    // currently selected tile for painting
     [SerializeField] private string paintTileId;    // ID of the currently selected tile (for save/load)
@@ -36,6 +42,9 @@ public class TileEditController : MonoBehaviour
 
     /// <summary>선택된 파워업 팔레트 id. 비어 있지 않으면 클릭 시 해당 프리팹을 셀 중앙에 배치.</summary>
     private string selectedPowerUpId = "";
+
+    /// <summary>선택된 물음표 블록 팔레트 id. 파워업과 동시에 선택되지 않음.</summary>
+    private string selectedQuestionBlockId = "";
 
     private Tilemap GetTilemapForLayer(TileLayerType layer)
     {
@@ -87,6 +96,12 @@ public class TileEditController : MonoBehaviour
                 PlacePowerUpAtCell(cellPos);
         }
 
+        if (Mouse.current.leftButton.wasReleasedThisFrame && !eraseMode && !string.IsNullOrEmpty(selectedQuestionBlockId))
+        {
+            if (!pointerOverSpawn)
+                PlaceQuestionBlockAtCell(cellPos);
+        }
+
         if (leftPressed)
         {
             if (eraseMode)
@@ -94,6 +109,7 @@ public class TileEditController : MonoBehaviour
                 if (!pointerOverSpawn)
                     EraseAt(cellPos);
                 ErasePowerUpsAtCell(cellPos);
+                EraseQuestionBlocksAtCell(cellPos);
             }
             else if (paintTile != null)
             {
@@ -106,6 +122,7 @@ public class TileEditController : MonoBehaviour
             if (!pointerOverSpawn)
                 EraseAt(cellPos);
             ErasePowerUpsAtCell(cellPos);
+            EraseQuestionBlocksAtCell(cellPos);
         }
     }
 
@@ -138,6 +155,7 @@ public class TileEditController : MonoBehaviour
         paintTile = tile;
         paintTileId = FindEntryByTile(tile)?.id ?? "";
         selectedPowerUpId = "";
+        selectedQuestionBlockId = "";
     }
 
     public void SetPaintTileById(string id)
@@ -147,12 +165,17 @@ public class TileEditController : MonoBehaviour
         paintTile = entry.tile;
         paintTileId = id;
         selectedPowerUpId = "";
+        selectedQuestionBlockId = "";
     }
 
     public void SetEraseMode(bool on)
     {
         eraseMode = on;
-        if (on) selectedPowerUpId = "";
+        if (on)
+        {
+            selectedPowerUpId = "";
+            selectedQuestionBlockId = "";
+        }
     }
 
     /// <summary>타일 팔레트에서 파워업 버튼 클릭 시 호출. id는 PowerUpPaletteEntry.id와 동일.</summary>
@@ -168,6 +191,7 @@ public class TileEditController : MonoBehaviour
             if (e == null || e.prefab == null) continue;
             if (e.id != id) continue;
             selectedPowerUpId = id;
+            selectedQuestionBlockId = "";
             paintTile = null;
             paintTileId = "";
             eraseMode = false;
@@ -178,8 +202,36 @@ public class TileEditController : MonoBehaviour
 
     public void ClearPowerUpSelection() => selectedPowerUpId = "";
 
+    /// <summary>타일 팔레트에서 물음표 블록 버튼 클릭 시 호출. id는 QuestionBlockPaletteEntry.id와 동일.</summary>
+    public void SetPlaceQuestionBlockById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || questionBlockPalette == null)
+        {
+            selectedQuestionBlockId = "";
+            return;
+        }
+        foreach (var e in questionBlockPalette)
+        {
+            if (e == null || e.prefab == null) continue;
+            if (e.id != id) continue;
+            selectedQuestionBlockId = id;
+            selectedPowerUpId = "";
+            paintTile = null;
+            paintTileId = "";
+            eraseMode = false;
+            return;
+        }
+        selectedQuestionBlockId = "";
+    }
+
+    public void ClearQuestionBlockSelection() => selectedQuestionBlockId = "";
+
     /// <summary>TilePaletteUI에서 파워업 섹션을 그릴 때 사용.</summary>
     public IReadOnlyList<PowerUpPaletteEntry> GetPowerUpPalette() => powerUpPalette ?? (powerUpPalette = new List<PowerUpPaletteEntry>());
+
+    /// <summary>TilePaletteUI에서 물음표 블록 섹션을 그릴 때 사용.</summary>
+    public IReadOnlyList<QuestionBlockPaletteEntry> GetQuestionBlockPalette() =>
+        questionBlockPalette ?? (questionBlockPalette = new List<QuestionBlockPaletteEntry>());
 
     /// <summary>Returns the current palette list. Creates an empty list if needed.</summary>
     public IReadOnlyList<TilePaletteEntry> GetPalette() => palette ?? (palette = new List<TilePaletteEntry>());
@@ -345,6 +397,10 @@ public class TileEditController : MonoBehaviour
         if (data.powerUps == null) data.powerUps = new List<PlacedPowerUpData>();
         ClearPlacedPowerUps();
         ApplyPowerUpsFromData(data.powerUps);
+
+        if (data.questionBlocks == null) data.questionBlocks = new List<PlacedQuestionBlockData>();
+        ClearPlacedQuestionBlocks();
+        ApplyQuestionBlocksFromData(data.questionBlocks);
     }
 
     private void ApplyLayerData(List<TileCellData> cells, Tilemap tilemap)
@@ -404,6 +460,21 @@ public class TileEditController : MonoBehaviour
             }
         }
 
+        data.questionBlocks = new List<PlacedQuestionBlockData>();
+        if (placedQuestionBlocksRoot != null)
+        {
+            foreach (var m in placedQuestionBlocksRoot.GetComponentsInChildren<PlacedQuestionBlockEditMarker>(true))
+            {
+                var t = m.transform.position;
+                data.questionBlocks.Add(new PlacedQuestionBlockData
+                {
+                    prefabId = m.paletteId,
+                    x = t.x,
+                    y = t.y
+                });
+            }
+        }
+
         return data;
     }
 
@@ -431,6 +502,7 @@ public class TileEditController : MonoBehaviour
         paintTileId = "";
         eraseMode = false;
         selectedPowerUpId = "";
+        selectedQuestionBlockId = "";
     }
 
     void PlacePowerUpAtCell(Vector3Int cell)
@@ -489,6 +561,66 @@ public class TileEditController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(id) || powerUpPalette == null) return null;
         foreach (var e in powerUpPalette)
+            if (e != null && e.id == id) return e;
+        return null;
+    }
+
+    void PlaceQuestionBlockAtCell(Vector3Int cell)
+    {
+        if (placedQuestionBlocksRoot == null) return;
+        var entry = FindQuestionBlockEntryById(selectedQuestionBlockId);
+        if (entry == null || entry.prefab == null) return;
+
+        Vector3 pos = groundTilemap.GetCellCenterWorld(cell);
+        pos.z = 0f;
+        var go = Instantiate(entry.prefab, pos, Quaternion.identity, placedQuestionBlocksRoot);
+        var marker = go.GetComponent<PlacedQuestionBlockEditMarker>();
+        if (marker == null) marker = go.AddComponent<PlacedQuestionBlockEditMarker>();
+        marker.paletteId = entry.id;
+    }
+
+    void EraseQuestionBlocksAtCell(Vector3Int cell)
+    {
+        if (placedQuestionBlocksRoot == null) return;
+        Bounds b = new Bounds(groundTilemap.GetCellCenterWorld(cell), (Vector3)groundTilemap.cellSize);
+        var markers = placedQuestionBlocksRoot.GetComponentsInChildren<PlacedQuestionBlockEditMarker>(true);
+        foreach (var m in markers)
+        {
+            if (m != null && b.Contains(m.transform.position))
+                Destroy(m.gameObject);
+        }
+    }
+
+    void ClearPlacedQuestionBlocks()
+    {
+        if (placedQuestionBlocksRoot == null) return;
+        for (int i = placedQuestionBlocksRoot.childCount - 1; i >= 0; i--)
+            Destroy(placedQuestionBlocksRoot.GetChild(i).gameObject);
+    }
+
+    void ApplyQuestionBlocksFromData(List<PlacedQuestionBlockData> list)
+    {
+        if (list == null || placedQuestionBlocksRoot == null) return;
+        foreach (var p in list)
+        {
+            if (p == null || string.IsNullOrEmpty(p.prefabId)) continue;
+            var entry = FindQuestionBlockEntryById(p.prefabId);
+            if (entry == null || entry.prefab == null)
+            {
+                Debug.LogWarning($"[TileEditController] Question block prefab not in palette: {p.prefabId}");
+                continue;
+            }
+            var go = Instantiate(entry.prefab, new Vector3(p.x, p.y, 0f), Quaternion.identity, placedQuestionBlocksRoot);
+            var marker = go.GetComponent<PlacedQuestionBlockEditMarker>();
+            if (marker == null) marker = go.AddComponent<PlacedQuestionBlockEditMarker>();
+            marker.paletteId = entry.id;
+        }
+    }
+
+    QuestionBlockPaletteEntry FindQuestionBlockEntryById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || questionBlockPalette == null) return null;
+        foreach (var e in questionBlockPalette)
             if (e != null && e.id == id) return e;
         return null;
     }

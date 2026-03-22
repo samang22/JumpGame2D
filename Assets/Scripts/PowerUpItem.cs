@@ -31,6 +31,10 @@ public class PowerUpItem : MonoBehaviour
     private int _groundedCoyote;
     private bool consumed;
     private bool gameplayStarted;
+    /// <summary>물음표 블록에서 막 스폰된 버섯 — BeginGameplayFirstTime에서 일반 버섯 물리 적용을 건너뜀.</summary>
+    private bool blockSpawnScheduled;
+    /// <summary>블록에서 올라오는 연출 중에는 수평 이동·착지 판정을 하지 않음.</summary>
+    private bool mushroomBlockRising;
     /// <summary>직전 프레임까지 맵 편집 모드였는지. 첫 프레임에서 Play/Test 진입 감지용으로 true로 둠.</summary>
     private bool wasMapEditMode = true;
 
@@ -89,6 +93,18 @@ public class PowerUpItem : MonoBehaviour
 
     private void BeginGameplayFirstTime()
     {
+        if (type == PowerUpType.Mushroom && blockSpawnScheduled)
+        {
+            gameplayStarted = true;
+            return;
+        }
+
+        if (type == PowerUpType.Flower && blockSpawnScheduled)
+        {
+            gameplayStarted = true;
+            return;
+        }
+
         if (type == PowerUpType.Flower)
         {
             if (rb != null)
@@ -100,6 +116,104 @@ public class PowerUpItem : MonoBehaviour
         }
         else
             ApplyMushroomPhysics();
+    }
+
+    /// <summary>
+    /// 물음표 블록에서 스폰 직후 호출. 버섯은 올라온 뒤 걷기, 꽃은 올라온 뒤 정지(기존 꽃과 동일).
+    /// </summary>
+    public void BeginReleaseFromBlock(Vector3 endWorldPosition, float riseDistance, float riseDuration)
+    {
+        blockSpawnScheduled = true;
+
+        if (type == PowerUpType.Mushroom)
+        {
+            mushroomBlockRising = true;
+            EnsureMushroomRigidbody();
+            if (rb != null)
+            {
+                rb.bodyType = RigidbodyType2D.Kinematic;
+                rb.linearVelocity = Vector2.zero;
+                rb.angularVelocity = 0f;
+            }
+
+            StartCoroutine(MushroomBlockRiseRoutine(endWorldPosition, riseDistance, riseDuration));
+        }
+        else if (type == PowerUpType.Flower)
+        {
+            if (rb == null) rb = GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.bodyType = RigidbodyType2D.Kinematic;
+                rb.linearVelocity = Vector2.zero;
+                rb.angularVelocity = 0f;
+            }
+
+            StartCoroutine(FlowerBlockRiseRoutine(endWorldPosition, riseDistance, riseDuration));
+        }
+    }
+
+    private IEnumerator FlowerBlockRiseRoutine(Vector3 endPos, float riseDistance, float riseDuration)
+    {
+        Vector3 startPos = endPos + Vector3.down * riseDistance;
+        transform.position = startPos;
+        if (rb != null)
+            rb.MovePosition(startPos);
+
+        float dur = Mathf.Max(0.01f, riseDuration);
+        float t = 0f;
+        while (t < 1f)
+        {
+            if (GameState.IsMapEditMode) yield break;
+
+            t += Time.deltaTime / dur;
+            float u = Mathf.Clamp01(t);
+            Vector3 p = Vector3.Lerp(startPos, endPos, Mathf.SmoothStep(0f, 1f, u));
+            transform.position = p;
+            if (rb != null)
+                rb.MovePosition(p);
+            yield return null;
+        }
+
+        transform.position = endPos;
+        if (rb != null)
+        {
+            rb.MovePosition(endPos);
+            rb.linearVelocity = Vector2.zero;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+        }
+    }
+
+    private IEnumerator MushroomBlockRiseRoutine(Vector3 endPos, float riseDistance, float riseDuration)
+    {
+        Vector3 startPos = endPos + Vector3.down * riseDistance;
+        transform.position = startPos;
+        if (rb != null)
+            rb.MovePosition(startPos);
+
+        float dur = Mathf.Max(0.01f, riseDuration);
+        float t = 0f;
+        while (t < 1f)
+        {
+            if (GameState.IsMapEditMode) yield break;
+
+            t += Time.deltaTime / dur;
+            float u = Mathf.Clamp01(t);
+            Vector3 p = Vector3.Lerp(startPos, endPos, Mathf.SmoothStep(0f, 1f, u));
+            transform.position = p;
+            if (rb != null)
+                rb.MovePosition(p);
+            yield return null;
+        }
+
+        transform.position = endPos;
+        if (rb != null)
+        {
+            rb.MovePosition(endPos);
+            rb.linearVelocity = Vector2.zero;
+        }
+
+        mushroomBlockRising = false;
+        ApplyMushroomPhysics();
     }
 
     /// <summary>버섯: Dynamic + 중력 + Y이동 허용(바닥으로 떨어짐).</summary>
@@ -160,6 +274,7 @@ public class PowerUpItem : MonoBehaviour
     {
         if (GameState.IsMapEditMode) return;
         if (type != PowerUpType.Mushroom) return;
+        if (mushroomBlockRising) return;
 
         float dir = Mathf.Sign(moveDirection);
         if (dir == 0f) dir = -1f;
@@ -230,6 +345,7 @@ public class PowerUpItem : MonoBehaviour
         if (GameState.IsMapEditMode) return;
 
         if (type != PowerUpType.Mushroom) return;
+        if (mushroomBlockRising) return;
         if (collision.contactCount == 0) return;
 
         Vector2 n = collision.GetContact(0).normal;

@@ -863,6 +863,8 @@ MonoBehaviour:
   paletteUI: {fileID: 0}
   powerUpPalette: []
   placedPowerUpsRoot: {fileID: 0}
+  questionBlockPalette: []
+  placedQuestionBlocksRoot: {fileID: 0}
   paintTile: {fileID: 11400000, guid: d3d1c945a92a78e41806e26a913a48c6, type: 2}
   paintTileId: 
   eraseMode: 0
@@ -1085,6 +1087,12 @@ MonoBehaviour:
     prefab: {fileID: 7393338314284507205, guid: 5ee315e7c8962f64a9510df92c5a59f5, type: 3}
     icon: {fileID: 3373568495408583166, guid: 062a9c8775245034e8e1b25005a8a34e, type: 3}
   powerUpsRoot: {fileID: 1361000398}
+  questionBlockPalette:
+  - id: QuestionBlock
+    displayName: QuestionBlock
+    prefab: {fileID: 7073276607995128495, guid: c4e119843a6aca84f9a266385baa65c9, type: 3}
+    icon: {fileID: -7629981894599855419, guid: 5e757ad5089f7944a97f15ef1c20cfc0, type: 3}
+  questionBlocksRoot: {fileID: 1274196279}
   resourcesPalettePath: Tiles
   saveSubFolder: Maps
   mapListSceneName: MapList
@@ -1265,6 +1273,37 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.14629, y: -0.80861, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1274196278
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1274196279}
+  m_Layer: 0
+  m_Name: PlacedMapObjects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1274196279
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1274196278}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.09833, y: 0.84691, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2406,3 +2445,4 @@ SceneRoots:
   - {fileID: 1591550104}
   - {fileID: 1076805362}
   - {fileID: 1361000398}
+  - {fileID: 1274196279}

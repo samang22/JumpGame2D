@@ -104,6 +104,8 @@ public class EditSceneController : MonoBehaviour
                 player.SetActive(true);
             }
             spawnMarker.SetActive(false);
+            // 스폰 마커 사용 시에도 에디트에서 꺼 둔 PlayerController 등을 Test Play에서 켜야 함
+            SetPlayerBehavioursEnabled(true);
         }
         else
         {

@@ -73,6 +73,9 @@ public class PlayerController : MonoBehaviour
 
     public void SetSpawnPosition(Vector3 pos) => spawnPosition = pos;
 
+    /// <summary>물음표 블록 등에서 스폰할 아이템 종류를 정할 때 사용 (맞은 시점 기준).</summary>
+    public PlayerState CurrentState => playerState;
+
     void OnEnable()
     {
         if (inputActions == null) inputActions = new PlayerInputActions();

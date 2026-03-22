@@ -121,6 +121,37 @@ public class TilePaletteUI : MonoBehaviour
             }
         }
 
+        var questionBlockList = tileEditController != null ? tileEditController.GetQuestionBlockPalette() : null;
+        if (questionBlockList != null && questionBlockList.Count > 0)
+        {
+            if (useSectionGroup && sectionGroupPrefab != null)
+            {
+                var qbGroup = Instantiate(sectionGroupPrefab, buttonContainer);
+                var tmpQb = qbGroup.GetComponentInChildren<TMP_Text>();
+                if (tmpQb != null) tmpQb.text = "Question blocks";
+                else
+                {
+                    var legQb = qbGroup.GetComponentInChildren<Text>();
+                    if (legQb != null) legQb.text = "Question blocks";
+                }
+                Transform qbGrid = qbGroup.transform.Find(gridRootChildName);
+                if (qbGrid == null) qbGrid = qbGroup.transform;
+                foreach (var e in questionBlockList)
+                {
+                    if (e == null || e.prefab == null) continue;
+                    AddQuestionBlockButton(e, qbGrid);
+                }
+            }
+            else
+            {
+                foreach (var e in questionBlockList)
+                {
+                    if (e == null || e.prefab == null) continue;
+                    AddQuestionBlockButton(e, buttonContainer);
+                }
+            }
+        }
+
         if (useSectionGroup)
         {
             foreach (var layer in layerOrder)
@@ -219,5 +250,34 @@ public class TilePaletteUI : MonoBehaviour
         string id = entry.id;
         if (btn != null && tileEditController != null)
             btn.onClick.AddListener(() => tileEditController.SetPlacePowerUpById(id));
+    }
+
+    private void AddQuestionBlockButton(QuestionBlockPaletteEntry entry, Transform parent)
+    {
+        GameObject go = Instantiate(buttonPrefab, parent);
+        Button btn = go.GetComponent<Button>();
+        if (btn == null) btn = go.GetComponentInChildren<Button>();
+
+        Image img = go.GetComponentInChildren<Image>();
+        if (img != null)
+        {
+            Sprite sprite = entry.GetDisplaySprite();
+            if (sprite != null)
+                img.sprite = sprite;
+        }
+
+        string label = entry.GetLabel();
+        var tmpText = go.GetComponentInChildren<TMP_Text>();
+        if (tmpText != null)
+            tmpText.text = label;
+        else
+        {
+            var legacyText = go.GetComponentInChildren<Text>();
+            if (legacyText != null) legacyText.text = label;
+        }
+
+        string id = entry.id;
+        if (btn != null && tileEditController != null)
+            btn.onClick.AddListener(() => tileEditController.SetPlaceQuestionBlockById(id));
     }
 }
