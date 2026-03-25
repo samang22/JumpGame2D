@@ -362,6 +362,8 @@ public class PlayerController : MonoBehaviour
 
     public void EnterVictory()
     {
+        GameState.IsVictory = true;
+
         animator.SetBool("grabPole", false);
         animator.SetBool("victory", true);
 

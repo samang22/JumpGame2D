@@ -37,6 +37,8 @@ public class PiranhaPlant : MonoBehaviour
     {
         while (true)
         {
+            while (GameState.IsVictory) yield return null;
+
             // 숨은 상태에서 대기
             yield return new WaitForSeconds(waitDuration);
 
@@ -59,6 +61,7 @@ public class PiranhaPlant : MonoBehaviour
     {
         while (Vector3.Distance(transform.position, target) > 0.01f)
         {
+            while (GameState.IsVictory) yield return null;
             transform.position = Vector3.MoveTowards(
                 transform.position, target, moveSpeed * Time.deltaTime);
             yield return null;

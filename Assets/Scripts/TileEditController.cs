@@ -21,6 +21,10 @@ public class TileEditController : MonoBehaviour
     [Header("Palette")]
     [SerializeField] private List<TilePaletteEntry> palette;
     [SerializeField] private string resourcesPalettePath = "Tiles";
+    [Tooltip("비어 있지 않으면 Resources 로드 대신 이 레지스트리만 사용 (에디터에서 바로 지정할 때).")]
+    [SerializeField] private MonsterPaletteRegistry monsterRegistryOverride;
+    [Tooltip("Resources 안의 MonsterPaletteRegistry 에셋 이름. 확장자 없음 (예: MonsterPaletteRegistry).")]
+    [SerializeField] private string monsterRegistryResourcePath = "MonsterPaletteRegistry";
     [SerializeField] private TilePaletteUI paletteUI;
 
     [Header("Power-ups (palette UI)")]
@@ -35,6 +39,12 @@ public class TileEditController : MonoBehaviour
     [Tooltip("에디트에서 배치한 물음표 블록의 부모. 비어 있으면 배치·저장이 동작하지 않음.")]
     [SerializeField] private Transform placedQuestionBlocksRoot;
 
+    [Header("Monsters (palette UI)")]
+    [Tooltip("그리드에 배치할 몬스터 프리팹. id는 저장 JSON의 prefabId와 동일해야 Play 씬에서도 복원됨.")]
+    [SerializeField] private List<MonsterPaletteEntry> monsterPalette;
+    [Tooltip("에디트에서 배치한 몬스터의 부모. 비어 있으면 배치·저장이 동작하지 않음.")]
+    [SerializeField] private Transform placedMonstersRoot;
+
     [Header("Current State")]
     [SerializeField] private TileBase paintTile;    // currently selected tile for painting
     [SerializeField] private string paintTileId;    // ID of the currently selected tile (for save/load)
@@ -45,6 +55,9 @@ public class TileEditController : MonoBehaviour
 
     /// <summary>선택된 물음표 블록 팔레트 id. 파워업과 동시에 선택되지 않음.</summary>
     private string selectedQuestionBlockId = "";
+
+    /// <summary>선택된 몬스터 팔레트 id. 타일·파워업·물음표와 동시에 선택되지 않음.</summary>
+    private string selectedMonsterId = "";
 
     private Tilemap GetTilemapForLayer(TileLayerType layer)
     {
@@ -68,8 +81,8 @@ public class TileEditController : MonoBehaviour
         if (editCamera == null || groundTilemap == null) return;
         if (Mouse.current == null) return;
 
-        // Don't paint/erase when clicking on UI (e.g. Tile List button, palette buttons)
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        // Don't paint/erase when clicking on UI. (-1 = 마우스; 인자 없는 오버로드는 환경에 따라 그리드 클릭까지 막을 수 있음)
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(-1))
             return;
 
         Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
@@ -102,6 +115,12 @@ public class TileEditController : MonoBehaviour
                 PlaceQuestionBlockAtCell(cellPos);
         }
 
+        if (Mouse.current.leftButton.wasReleasedThisFrame && !eraseMode && !string.IsNullOrEmpty(selectedMonsterId))
+        {
+            if (!pointerOverSpawn)
+                PlaceMonsterAtCell(cellPos);
+        }
+
         if (leftPressed)
         {
             if (eraseMode)
@@ -110,6 +129,7 @@ public class TileEditController : MonoBehaviour
                     EraseAt(cellPos);
                 ErasePowerUpsAtCell(cellPos);
                 EraseQuestionBlocksAtCell(cellPos);
+                EraseMonstersAtCell(cellPos);
             }
             else if (paintTile != null)
             {
@@ -123,6 +143,7 @@ public class TileEditController : MonoBehaviour
                 EraseAt(cellPos);
             ErasePowerUpsAtCell(cellPos);
             EraseQuestionBlocksAtCell(cellPos);
+            EraseMonstersAtCell(cellPos);
         }
     }
 
@@ -156,6 +177,7 @@ public class TileEditController : MonoBehaviour
         paintTileId = FindEntryByTile(tile)?.id ?? "";
         selectedPowerUpId = "";
         selectedQuestionBlockId = "";
+        selectedMonsterId = "";
     }
 
     public void SetPaintTileById(string id)
@@ -166,6 +188,7 @@ public class TileEditController : MonoBehaviour
         paintTileId = id;
         selectedPowerUpId = "";
         selectedQuestionBlockId = "";
+        selectedMonsterId = "";
     }
 
     public void SetEraseMode(bool on)
@@ -175,6 +198,7 @@ public class TileEditController : MonoBehaviour
         {
             selectedPowerUpId = "";
             selectedQuestionBlockId = "";
+            selectedMonsterId = "";
         }
     }
 
@@ -192,6 +216,7 @@ public class TileEditController : MonoBehaviour
             if (e.id != id) continue;
             selectedPowerUpId = id;
             selectedQuestionBlockId = "";
+            selectedMonsterId = "";
             paintTile = null;
             paintTileId = "";
             eraseMode = false;
@@ -216,6 +241,7 @@ public class TileEditController : MonoBehaviour
             if (e.id != id) continue;
             selectedQuestionBlockId = id;
             selectedPowerUpId = "";
+            selectedMonsterId = "";
             paintTile = null;
             paintTileId = "";
             eraseMode = false;
@@ -226,12 +252,41 @@ public class TileEditController : MonoBehaviour
 
     public void ClearQuestionBlockSelection() => selectedQuestionBlockId = "";
 
+    /// <summary>몬스터 팔레트에서 버튼 클릭 시 호출. id는 MonsterPaletteEntry.id와 동일.</summary>
+    public void SetPlaceMonsterById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || monsterPalette == null)
+        {
+            selectedMonsterId = "";
+            return;
+        }
+        foreach (var e in monsterPalette)
+        {
+            if (e == null || e.prefab == null) continue;
+            if (e.id != id) continue;
+            selectedMonsterId = id;
+            selectedPowerUpId = "";
+            selectedQuestionBlockId = "";
+            paintTile = null;
+            paintTileId = "";
+            eraseMode = false;
+            return;
+        }
+        selectedMonsterId = "";
+    }
+
+    public void ClearMonsterSelection() => selectedMonsterId = "";
+
     /// <summary>TilePaletteUI에서 파워업 섹션을 그릴 때 사용.</summary>
     public IReadOnlyList<PowerUpPaletteEntry> GetPowerUpPalette() => powerUpPalette ?? (powerUpPalette = new List<PowerUpPaletteEntry>());
 
     /// <summary>TilePaletteUI에서 물음표 블록 섹션을 그릴 때 사용.</summary>
     public IReadOnlyList<QuestionBlockPaletteEntry> GetQuestionBlockPalette() =>
         questionBlockPalette ?? (questionBlockPalette = new List<QuestionBlockPaletteEntry>());
+
+    /// <summary>MonsterPaletteUI에서 몬스터 버튼을 그릴 때 사용.</summary>
+    public IReadOnlyList<MonsterPaletteEntry> GetMonsterPalette() =>
+        monsterPalette ?? (monsterPalette = new List<MonsterPaletteEntry>());
 
     /// <summary>Returns the current palette list. Creates an empty list if needed.</summary>
     public IReadOnlyList<TilePaletteEntry> GetPalette() => palette ?? (palette = new List<TilePaletteEntry>());
@@ -294,6 +349,21 @@ public class TileEditController : MonoBehaviour
             }
         }
     }
+
+    /// <summary>
+    /// <see cref="MonsterPaletteRegistry"/>에서 <see cref="monsterPalette"/>를 채웁니다.
+    /// </summary>
+    public void LoadMonsterPalette()
+    {
+        if (monsterPalette == null) monsterPalette = new List<MonsterPaletteEntry>();
+        if (monsterRegistryOverride != null)
+            MonsterPaletteLoader.LoadFromRegistry(monsterRegistryOverride, monsterPalette);
+        else
+            MonsterPaletteLoader.TryLoadFromResources(monsterRegistryResourcePath, monsterPalette);
+    }
+
+    /// <summary>이전 API 호환. <see cref="LoadMonsterPalette"/>와 동일.</summary>
+    public void LoadMonsterPaletteFromResources() => LoadMonsterPalette();
 
     TilePaletteEntry FindEntryByTile(TileBase tile)
     {
@@ -401,6 +471,12 @@ public class TileEditController : MonoBehaviour
         if (data.questionBlocks == null) data.questionBlocks = new List<PlacedQuestionBlockData>();
         ClearPlacedQuestionBlocks();
         ApplyQuestionBlocksFromData(data.questionBlocks);
+
+        if (data.monsters == null) data.monsters = new List<PlacedMonsterData>();
+        ClearPlacedMonsters();
+        if (monsterPalette == null || monsterPalette.Count == 0)
+            LoadMonsterPalette();
+        ApplyMonstersFromData(data.monsters);
     }
 
     private void ApplyLayerData(List<TileCellData> cells, Tilemap tilemap)
@@ -475,6 +551,21 @@ public class TileEditController : MonoBehaviour
             }
         }
 
+        data.monsters = new List<PlacedMonsterData>();
+        if (placedMonstersRoot != null)
+        {
+            foreach (var m in placedMonstersRoot.GetComponentsInChildren<PlacedMonsterEditMarker>(true))
+            {
+                var t = m.transform.position;
+                data.monsters.Add(new PlacedMonsterData
+                {
+                    prefabId = m.paletteId,
+                    x = t.x,
+                    y = t.y
+                });
+            }
+        }
+
         return data;
     }
 
@@ -503,6 +594,7 @@ public class TileEditController : MonoBehaviour
         eraseMode = false;
         selectedPowerUpId = "";
         selectedQuestionBlockId = "";
+        selectedMonsterId = "";
     }
 
     void PlacePowerUpAtCell(Vector3Int cell)
@@ -621,6 +713,112 @@ public class TileEditController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(id) || questionBlockPalette == null) return null;
         foreach (var e in questionBlockPalette)
+            if (e != null && e.id == id) return e;
+        return null;
+    }
+
+    void PlaceMonsterAtCell(Vector3Int cell)
+    {
+        if (placedMonstersRoot == null)
+        {
+            Debug.LogWarning("[TileEditController] placedMonstersRoot가 없습니다. 에디트 씬에서 TileEditController의 Placed Monsters Root에 부모 Transform을 지정하세요.");
+            return;
+        }
+
+        if (monsterPalette == null || monsterPalette.Count == 0)
+            LoadMonsterPalette();
+
+        var entry = FindMonsterEntryById(selectedMonsterId);
+        if (entry == null || entry.prefab == null)
+        {
+            Debug.LogWarning($"[TileEditController] 몬스터 id '{selectedMonsterId}'에 해당하는 프리팹이 없습니다. MonsterPaletteRegistry의 entries와 id를 확인하세요.");
+            return;
+        }
+
+        // 타일이 칸을 채울 때 “서 있는 면”은 셀의 위 변. 아래 변을 쓰면 발이 블록 한 칸 아래(칸 안쪽)로 맞춰짐.
+        Vector3 surfaceCenter = GetCellTopCenterWorld(cell);
+        var go = Instantiate(entry.prefab, surfaceCenter, Quaternion.identity, placedMonstersRoot);
+        AlignMonsterBottomToWorldY(go, surfaceCenter.y);
+        var marker = go.GetComponent<PlacedMonsterEditMarker>();
+        if (marker == null) marker = go.AddComponent<PlacedMonsterEditMarker>();
+        marker.paletteId = entry.id;
+    }
+
+    /// <summary>셀의 위 변 중앙(월드). 그리드 칸에 깔린 블록의 “윗면”에 발을 맞출 때 사용.</summary>
+    Vector3 GetCellTopCenterWorld(Vector3Int cell)
+    {
+        Vector3 center = groundTilemap.GetCellCenterWorld(cell);
+        float halfY = groundTilemap.cellSize.y * Mathf.Abs(groundTilemap.transform.lossyScale.y) * 0.5f;
+        center.y += halfY;
+        center.z = 0f;
+        return center;
+    }
+
+    /// <summary>인스턴스의 시각·물리 하단(콜라이더 우선, 없으면 SpriteRenderer)이 <paramref name="worldFloorY"/>에 오도록 Y만 이동.</summary>
+    static void AlignMonsterBottomToWorldY(GameObject instance, float worldFloorY)
+    {
+        float minY = float.MaxValue;
+        foreach (var col in instance.GetComponentsInChildren<Collider2D>(true))
+        {
+            if (!col.enabled) continue;
+            minY = Mathf.Min(minY, col.bounds.min.y);
+        }
+        if (minY < float.MaxValue)
+        {
+            instance.transform.position += new Vector3(0f, worldFloorY - minY, 0f);
+            return;
+        }
+        foreach (var sr in instance.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (sr.sprite == null || !sr.enabled) continue;
+            minY = Mathf.Min(minY, sr.bounds.min.y);
+        }
+        if (minY < float.MaxValue)
+            instance.transform.position += new Vector3(0f, worldFloorY - minY, 0f);
+    }
+
+    void EraseMonstersAtCell(Vector3Int cell)
+    {
+        if (placedMonstersRoot == null) return;
+        Bounds b = new Bounds(groundTilemap.GetCellCenterWorld(cell), (Vector3)groundTilemap.cellSize);
+        var markers = placedMonstersRoot.GetComponentsInChildren<PlacedMonsterEditMarker>(true);
+        foreach (var m in markers)
+        {
+            if (m != null && b.Contains(m.transform.position))
+                Destroy(m.gameObject);
+        }
+    }
+
+    void ClearPlacedMonsters()
+    {
+        if (placedMonstersRoot == null) return;
+        for (int i = placedMonstersRoot.childCount - 1; i >= 0; i--)
+            Destroy(placedMonstersRoot.GetChild(i).gameObject);
+    }
+
+    void ApplyMonstersFromData(List<PlacedMonsterData> list)
+    {
+        if (list == null || placedMonstersRoot == null) return;
+        foreach (var p in list)
+        {
+            if (p == null || string.IsNullOrEmpty(p.prefabId)) continue;
+            var entry = FindMonsterEntryById(p.prefabId);
+            if (entry == null || entry.prefab == null)
+            {
+                Debug.LogWarning($"[TileEditController] Monster prefab not in palette: {p.prefabId}");
+                continue;
+            }
+            var go = Instantiate(entry.prefab, new Vector3(p.x, p.y, 0f), Quaternion.identity, placedMonstersRoot);
+            var marker = go.GetComponent<PlacedMonsterEditMarker>();
+            if (marker == null) marker = go.AddComponent<PlacedMonsterEditMarker>();
+            marker.paletteId = entry.id;
+        }
+    }
+
+    MonsterPaletteEntry FindMonsterEntryById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || monsterPalette == null) return null;
+        foreach (var e in monsterPalette)
             if (e != null && e.id == id) return e;
         return null;
     }

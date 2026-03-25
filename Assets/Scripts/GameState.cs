@@ -12,11 +12,14 @@ public static class GameState
     /// <summary>When IsTestPlay is false, the map ID to load from file (e.g. file name).</summary>
     public static string SelectedMapId;
 
-    /// <summary>When IsTestPlay is true, the in-memory map data passed from Edit. Used by Play scene to restore tilemaps.</summary>
+    /// <summary>Test Play 직전 Edit 씬에서 스냅샷한 맵 데이터. Return to Edit 시 타일·몬스터·파워업 등 복원에 사용.</summary>
     public static MapData TestPlayMapData;
 
     /// <summary>Edit 씬에서 타일 편집 중일 때 true(Test Play 아님). 파워업 등은 이때 움직이지 않음.</summary>
     public static bool IsMapEditMode;
+
+    /// <summary>클리어 후 플레이어 Victory 애니 재생 중일 때 true. 몬스터 이동/AI 정지용.</summary>
+    public static bool IsVictory;
 }
 
 /// <summary>
@@ -47,6 +50,9 @@ public class MapData
 
     /// <summary>에디트에서 배치한 물음표 블록. prefabId는 QuestionBlockPaletteEntry.id와 일치해야 함.</summary>
     public List<PlacedQuestionBlockData> questionBlocks = new List<PlacedQuestionBlockData>();
+
+    /// <summary>에디트에서 배치한 몬스터. prefabId는 MonsterPaletteEntry.id와 일치해야 함.</summary>
+    public List<PlacedMonsterData> monsters = new List<PlacedMonsterData>();
 }
 
 [System.Serializable]
@@ -59,6 +65,14 @@ public class PlacedPowerUpData
 
 [System.Serializable]
 public class PlacedQuestionBlockData
+{
+    public string prefabId;
+    public float x;
+    public float y;
+}
+
+[System.Serializable]
+public class PlacedMonsterData
 {
     public string prefabId;
     public float x;

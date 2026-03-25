@@ -43,8 +43,17 @@ public class PlaySceneController : MonoBehaviour
     [Tooltip("플레이 씬에서 생성된 물음표 블록의 부모. 비어 있으면 씬 루트에 생성.")]
     [SerializeField] private Transform questionBlocksRoot;
 
+    [Header("Monsters (MonsterPaletteRegistry 참조)")]
+    [SerializeField] private List<MonsterPaletteEntry> monsterPalette = new List<MonsterPaletteEntry>();
+    [Tooltip("플레이 씬에서 생성된 몬스터의 부모. 비어 있으면 배치되지 않음.")]
+    [SerializeField] private Transform monstersRoot;
+
     [Header("Settings")]
     [SerializeField] private string resourcesPalettePath = "Tiles";
+    [Tooltip("비어 있지 않으면 Resources 대신 직접 지정 (에디터).")]
+    [SerializeField] private MonsterPaletteRegistry monsterRegistryOverride;
+    [Tooltip("Resources 내 레지스트리 에셋 이름. 확장자 없음. TileEditController와 동일하게.")]
+    [SerializeField] private string monsterRegistryResourcePath = "MonsterPaletteRegistry";
     [SerializeField] private string saveSubFolder = "Maps";
     [SerializeField] private string mapListSceneName = "MapList";
 
@@ -54,6 +63,7 @@ public class PlaySceneController : MonoBehaviour
     private void Awake()
     {
         GameState.IsMapEditMode = false;
+        GameState.IsVictory = false;
     }
 
     private void Start()
@@ -110,6 +120,11 @@ public class PlaySceneController : MonoBehaviour
         }
 
         Debug.Log($"[PlaySceneController] Palette loaded: {palette.Count} tiles.");
+
+        if (monsterRegistryOverride != null)
+            MonsterPaletteLoader.LoadFromRegistry(monsterRegistryOverride, monsterPalette);
+        else
+            MonsterPaletteLoader.TryLoadFromResources(monsterRegistryResourcePath, monsterPalette);
     }
 
     private void LoadMap()
@@ -180,6 +195,7 @@ public class PlaySceneController : MonoBehaviour
 
         ApplyPowerUpsFromMapData(data);
         ApplyQuestionBlocksFromMapData(data);
+        ApplyMonstersFromMapData(data);
     }
 
     private void ApplyPowerUpsFromMapData(MapData data)
@@ -228,6 +244,34 @@ public class PlaySceneController : MonoBehaviour
         }
     }
 
+    private void ApplyMonstersFromMapData(MapData data)
+    {
+        if (monstersRoot != null)
+        {
+            for (int i = monstersRoot.childCount - 1; i >= 0; i--)
+                Destroy(monstersRoot.GetChild(i).gameObject);
+        }
+
+        if (data == null || data.monsters == null || data.monsters.Count == 0) return;
+        if (monstersRoot == null)
+        {
+            Debug.LogWarning("[PlaySceneController] monstersRoot is not assigned. Monsters from map skipped.");
+            return;
+        }
+
+        foreach (var p in data.monsters)
+        {
+            if (p == null || string.IsNullOrEmpty(p.prefabId)) continue;
+            var entry = FindMonsterPaletteEntry(p.prefabId);
+            if (entry == null || entry.prefab == null)
+            {
+                Debug.LogWarning($"[PlaySceneController] Monster id not in palette: {p.prefabId}");
+                continue;
+            }
+            Instantiate(entry.prefab, new Vector3(p.x, p.y, 0f), Quaternion.identity, monstersRoot);
+        }
+    }
+
     private PowerUpPaletteEntry FindPowerUpPaletteEntry(string id)
     {
         if (string.IsNullOrEmpty(id) || powerUpPalette == null) return null;
@@ -240,6 +284,14 @@ public class PlaySceneController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(id) || questionBlockPalette == null) return null;
         foreach (var e in questionBlockPalette)
+            if (e != null && e.id == id) return e;
+        return null;
+    }
+
+    private MonsterPaletteEntry FindMonsterPaletteEntry(string id)
+    {
+        if (string.IsNullOrEmpty(id) || monsterPalette == null) return null;
+        foreach (var e in monsterPalette)
             if (e != null && e.id == id) return e;
         return null;
     }

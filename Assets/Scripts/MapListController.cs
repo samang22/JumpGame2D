@@ -99,6 +99,7 @@ public class MapListController : MonoBehaviour
         }
 
         GameState.IsTestPlay = false;
+        GameState.IsVictory = false;
         SceneManager.LoadScene(sceneName);
     }
 
@@ -117,6 +118,7 @@ public class MapListController : MonoBehaviour
         }
 
         GameState.IsTestPlay = false;
+        GameState.IsVictory = false;
         SceneManager.LoadScene(sceneName);
     }
 

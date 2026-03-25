@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System.IO;
 using System.Collections;
 using TMPro;
+using System;
 
 public class EditSceneController : MonoBehaviour
 {
@@ -42,6 +43,7 @@ public class EditSceneController : MonoBehaviour
     private void Awake()
     {
         GameState.IsMapEditMode = true;
+        GameState.IsVictory = false;
     }
 
     private void OnDestroy()
@@ -88,6 +90,12 @@ public class EditSceneController : MonoBehaviour
     /// <summary>Called from TestPlay button OnClick. Stays in Edit scene; only controller and camera behavior switch.</summary>
     public void OnTestPlayClicked()
     {
+        GameState.IsVictory = false;
+
+        // Test Play 중 Destroy된 몬스터·파워업 등을 에디트 복귀 시 되살리기 위해, 들어가기 직전 맵 스냅샷을 둔다.
+        if (tileEditController != null)
+            GameState.TestPlayMapData = CloneMapData(tileEditController.CollectMapData());
+
         GameState.IsTestPlay = true;
         GameState.IsMapEditMode = false;
         GameState.SelectedMapId = null;
@@ -126,10 +134,18 @@ public class EditSceneController : MonoBehaviour
     /// <summary>Called from Back to Edit button OnClick. Returns to edit mode in the same scene.</summary>
     public void OnBackToEditClicked()
     {
+        GameState.IsVictory = false;
         GameState.IsTestPlay = false;
         GameState.IsMapEditMode = true;
 
-        if (tileEditController != null) tileEditController.enabled = true;
+        DestroySpawnedGreenTurtleShells();
+
+        if (tileEditController != null)
+        {
+            tileEditController.enabled = true;
+            if (GameState.TestPlayMapData != null)
+                tileEditController.ApplyMapData(GameState.TestPlayMapData);
+        }
         if (spawnMarker != null)
         {
             if (player != null) player.SetActive(false);
@@ -177,6 +193,31 @@ public class EditSceneController : MonoBehaviour
         foreach (var b in playerBehavioursToDisableInEditMode)
         {
             if (b != null) b.enabled = enabled;
+        }
+    }
+
+    /// <summary>Test Play 중 밟기로 생성된 껍데기는 맵 데이터에 없으므로 에디트 복귀 시 제거.</summary>
+    static void DestroySpawnedGreenTurtleShells()
+    {
+        var shells = UnityEngine.Object.FindObjectsByType<GreenTurtleShell>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        foreach (var s in shells)
+        {
+            if (s != null)
+                UnityEngine.Object.Destroy(s.gameObject);
+        }
+    }
+
+    static MapData CloneMapData(MapData src)
+    {
+        if (src == null) return null;
+        try
+        {
+            return JsonUtility.FromJson<MapData>(JsonUtility.ToJson(src));
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[EditSceneController] CloneMapData failed: {e.Message}");
+            return null;
         }
     }
 
