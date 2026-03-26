@@ -17,3 +17,11 @@ MonoBehaviour:
     displayName: Green Turtle
     prefab: {fileID: 910000000000000001, guid: e9b2f7a41c8d4536b1e0f2a3c4d5e6f7, type: 3}
     icon: {fileID: -2691482194451379487, guid: fb3a565d46162684390a6aecf228b5f6, type: 3}
+  - id: Goomba
+    displayName: Goomba
+    prefab: {fileID: 4600433437318055029, guid: bbc0b1fbd608fc646ba9e7035cdfcdd1, type: 3}
+    icon: {fileID: -3605285236067844410, guid: 8e1fe3a0bf8af9c489500d3847291f02, type: 3}
+  - id: HammerTurtle
+    displayName: Hammer Turtle
+    prefab: {fileID: 910000000000000201, guid: a1b2c3d4e5f6789012345678abcdefbb, type: 3}
+    icon: {fileID: 7500542366731602273, guid: 37027365e335aec469cff1cde29ba075, type: 3}

@@ -10,6 +10,13 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float smoothTime = 0.2f;
 
     private Vector3 _velocity;
+    private PlayerController _player;
+
+    private void Awake()
+    {
+        if (target != null)
+            _player = target.GetComponent<PlayerController>() ?? target.GetComponentInParent<PlayerController>();
+    }
 
     public void SnapToTarget()
     {
@@ -25,6 +32,8 @@ public class CameraFollow : MonoBehaviour
     private void LateUpdate()
     {
         if (target == null) return;
+        if (_player != null && _player.IsDead) return;
+
         Vector3 goal = target.position + offset;
         transform.position = Vector3.SmoothDamp(transform.position, goal, ref _velocity, smoothTime);
     }

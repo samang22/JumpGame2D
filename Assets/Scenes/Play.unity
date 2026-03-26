@@ -490,6 +490,37 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &388124107
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 388124108}
+  m_Layer: 0
+  m_Name: PlacedMonstersRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &388124108
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 388124107}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.07002, y: -2.65487, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &389146660
 GameObject:
   m_ObjectHideFlags: 0
@@ -860,11 +891,15 @@ MonoBehaviour:
     tile: {fileID: 11400000, guid: 63c7842e86ef1d34baa35169445ead14, type: 2}
     layer: 0
   resourcesPalettePath: Tiles
+  monsterRegistryOverride: {fileID: 0}
+  monsterRegistryResourcePath: MonsterPaletteRegistry
   paletteUI: {fileID: 0}
   powerUpPalette: []
   placedPowerUpsRoot: {fileID: 0}
   questionBlockPalette: []
   placedQuestionBlocksRoot: {fileID: 0}
+  monsterPalette: []
+  placedMonstersRoot: {fileID: 0}
   paintTile: {fileID: 11400000, guid: d3d1c945a92a78e41806e26a913a48c6, type: 2}
   paintTileId: 
   eraseMode: 0
@@ -1093,7 +1128,11 @@ MonoBehaviour:
     prefab: {fileID: 7073276607995128495, guid: c4e119843a6aca84f9a266385baa65c9, type: 3}
     icon: {fileID: -7629981894599855419, guid: 5e757ad5089f7944a97f15ef1c20cfc0, type: 3}
   questionBlocksRoot: {fileID: 1274196279}
+  monsterPalette: []
+  monstersRoot: {fileID: 388124108}
   resourcesPalettePath: Tiles
+  monsterRegistryOverride: {fileID: 0}
+  monsterRegistryResourcePath: MonsterPaletteRegistry
   saveSubFolder: Maps
   mapListSceneName: MapList
   clearToMapListDelay: 2
@@ -2446,3 +2485,4 @@ SceneRoots:
   - {fileID: 1076805362}
   - {fileID: 1361000398}
   - {fileID: 1274196279}
+  - {fileID: 388124108}

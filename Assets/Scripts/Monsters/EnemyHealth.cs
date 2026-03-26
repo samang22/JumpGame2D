@@ -19,6 +19,13 @@ public class EnemyHealth : MonoBehaviour
         if (amount <= 0) return;
         currentHp -= amount;
         if (currentHp <= 0)
+        {
+            if (TryGetComponent<IShellKillable>(out var shellKill))
+            {
+                shellKill.OnShellKill();
+                return;
+            }
             Destroy(gameObject);
+        }
     }
 }
