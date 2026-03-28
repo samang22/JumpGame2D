@@ -15,6 +15,8 @@ public class MonsterPaletteUI : MonoBehaviour
     [Tooltip("섹션 헤더 + GridRoot가 있는 그룹 프리팹. TilePaletteUI와 동일 구조면 됨.")]
     [SerializeField] private GameObject sectionGroupPrefab;
     [SerializeField] private string gridRootChildName = "GridRoot";
+    [Tooltip("한 줄에 배치할 열 개수. 이 값 이상이면 다음 줄로 넘어감.")]
+    [SerializeField] [Min(1)] private int paletteColumnsPerRow = 3;
     [SerializeField] private GameObject clearSelectionButtonPrefab;
 
     /// <summary>몬스터 팔레트 패널을 켜거나 끕니다. "Monster List" 등 버튼에 연결.</summary>
@@ -70,6 +72,8 @@ public class MonsterPaletteUI : MonoBehaviour
             if (gridRoot == null) gridRoot = group.transform;
         }
 
+        EnsurePaletteGridColumns(gridRoot);
+
         foreach (var e in list)
         {
             if (e == null || e.prefab == null) continue;
@@ -79,6 +83,19 @@ public class MonsterPaletteUI : MonoBehaviour
         var containerRect = buttonContainer as RectTransform;
         if (containerRect != null)
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(containerRect);
+    }
+
+    private void EnsurePaletteGridColumns(Transform gridRoot)
+    {
+        if (gridRoot == null) return;
+        var grid = gridRoot.GetComponent<GridLayoutGroup>();
+        if (grid == null)
+            grid = gridRoot.gameObject.AddComponent<GridLayoutGroup>();
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = Mathf.Max(1, paletteColumnsPerRow);
+        grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        grid.startAxis = GridLayoutGroup.Axis.Horizontal;
+        grid.childAlignment = TextAnchor.UpperCenter;
     }
 
     private void AddMonsterButton(MonsterPaletteEntry entry, Transform parent)

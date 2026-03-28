@@ -25,3 +25,7 @@ MonoBehaviour:
     displayName: Hammer Turtle
     prefab: {fileID: 910000000000000201, guid: a1b2c3d4e5f6789012345678abcdefbb, type: 3}
     icon: {fileID: 7500542366731602273, guid: 37027365e335aec469cff1cde29ba075, type: 3}
+  - id: BoongBoong
+    displayName: BoongBoong
+    prefab: {fileID: 4600433437318055029, guid: 814d6bb6c077f8743846fa45d61676bc, type: 3}
+    icon: {fileID: -1387217517392445762, guid: 931ed90a788e00a458e6e8107fbee97b, type: 3}

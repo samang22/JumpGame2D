@@ -18,6 +18,8 @@ public class TilePaletteUI : MonoBehaviour
     [SerializeField] private GameObject sectionGroupPrefab;
     [Tooltip("섹션 그룹 프리팹 안에서 타일 버튼을 넣을 자식 이름. 기본 GridRoot.")]
     [SerializeField] private string gridRootChildName = "GridRoot";
+    [Tooltip("GridRoot(또는 팔레트 컨테이너)에 Grid Layout Group이 있을 때 한 줄에 배치할 열 개수. 이 값 이상이면 다음 줄로 넘어감.")]
+    [SerializeField] [Min(1)] private int paletteColumnsPerRow = 3;
     [SerializeField] private GameObject clearButtonPrefab;
     private void Start()
     {
@@ -105,6 +107,7 @@ public class TilePaletteUI : MonoBehaviour
                 }
                 Transform puGrid = puGroup.transform.Find(gridRootChildName);
                 if (puGrid == null) puGrid = puGroup.transform;
+                EnsurePaletteGridColumns(puGrid);
                 foreach (var e in powerUpList)
                 {
                     if (e == null || e.prefab == null) continue;
@@ -136,6 +139,7 @@ public class TilePaletteUI : MonoBehaviour
                 }
                 Transform qbGrid = qbGroup.transform.Find(gridRootChildName);
                 if (qbGrid == null) qbGrid = qbGroup.transform;
+                EnsurePaletteGridColumns(qbGrid);
                 foreach (var e in questionBlockList)
                 {
                     if (e == null || e.prefab == null) continue;
@@ -171,6 +175,7 @@ public class TilePaletteUI : MonoBehaviour
 
                 Transform gridRoot = group.transform.Find(gridRootChildName);
                 if (gridRoot == null) gridRoot = group.transform;
+                EnsurePaletteGridColumns(gridRoot);
 
                 foreach (var entry in entriesOfLayer)
                     AddButton(entry, gridRoot);
@@ -178,6 +183,7 @@ public class TilePaletteUI : MonoBehaviour
         }
         else
         {
+            EnsurePaletteGridColumns(buttonContainer);
             foreach (TilePaletteEntry entry in palette)
             {
                 if (entry.tile == null) continue;
@@ -191,6 +197,20 @@ public class TilePaletteUI : MonoBehaviour
         {
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(containerRect);
         }
+    }
+
+    /// <summary>Grid Layout Group에 열 개수 제한을 걸어 N개마다 다음 줄로 넘어가게 함.</summary>
+    private void EnsurePaletteGridColumns(Transform gridRoot)
+    {
+        if (gridRoot == null) return;
+        var grid = gridRoot.GetComponent<GridLayoutGroup>();
+        if (grid == null)
+            grid = gridRoot.gameObject.AddComponent<GridLayoutGroup>();
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = Mathf.Max(1, paletteColumnsPerRow);
+        grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        grid.startAxis = GridLayoutGroup.Axis.Horizontal;
+        grid.childAlignment = TextAnchor.UpperCenter;
     }
 
 
