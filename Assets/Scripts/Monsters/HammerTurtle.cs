@@ -41,6 +41,11 @@ public class HammerTurtle : MonoBehaviour, IShellKillable
     [SerializeField] private float stompThreshold = 0.2f;
     [SerializeField] private float stompBounce = 8f;
 
+    [Header("Kinematic 낙하 (발밑에 Ground 없을 때)")]
+    [SerializeField] private float kinematicFallAcceleration = 45f;
+    [SerializeField] private float kinematicMaxFallSpeed = 22f;
+    [SerializeField] private float kinematicGroundCheckDistance = 0.15f;
+
     [Header("Death (밟힘 후 연출)")]
     [Tooltip("뒤집힌 채 위로 주는 세로 속도")]
     [SerializeField] private float deathPopVelocity = 4f;
@@ -49,6 +54,7 @@ public class HammerTurtle : MonoBehaviour, IShellKillable
     [SerializeField] private float destroyAfterDeathDelay = 0.45f;
 
     private Rigidbody2D rb;
+    private Collider2D bodyCollider;
     private float initialGravityScale;
     private Vector2 spawnAnchor;
     private float patrolDirection = 1f;
@@ -61,7 +67,9 @@ public class HammerTurtle : MonoBehaviour, IShellKillable
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        bodyCollider = GetComponent<Collider2D>();
         initialGravityScale = rb.gravityScale;
+        MonsterKinematicSetup.ApplyGameplayKinematic(rb);
         myColliders = GetComponentsInChildren<Collider2D>(true);
         if (animator == null)
             animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>(true);
@@ -114,7 +122,11 @@ public class HammerTurtle : MonoBehaviour, IShellKillable
         else if (x >= maxX - eps && patrolDirection > 0f)
             patrolDirection = -1f;
 
-        rb.linearVelocity = new Vector2(patrolDirection * walkSpeed, rb.linearVelocity.y);
+        float vx = patrolDirection * walkSpeed;
+        bool grounded = MonsterKinematicFall.IsGrounded(rb, bodyCollider, groundTag, kinematicGroundCheckDistance);
+        float vy = MonsterKinematicFall.NextVerticalVelocity(
+            rb.linearVelocity.y, grounded, kinematicFallAcceleration, kinematicMaxFallSpeed, Time.fixedDeltaTime);
+        rb.linearVelocity = new Vector2(vx, vy);
     }
 
     private void UpdateFacingToPlayer()
@@ -209,6 +221,9 @@ public class HammerTurtle : MonoBehaviour, IShellKillable
     {
         if (isDead) return;
         if (GameState.IsMapEditMode || GameState.IsVictory) return;
+
+        if (MonsterGreenShellContact.TryHandleMovingShellHit(col, this, OnShellKill))
+            return;
 
         // 몬스터·지면 등과 부딪혀도 순찰 방향은 바꾸지 않음(물리만 적용)
         if (!col.gameObject.CompareTag(playerTag))

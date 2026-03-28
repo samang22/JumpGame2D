@@ -95,11 +95,17 @@ public class GreenTurtle : MonoBehaviour, IShellKillable
     [Tooltip("몬스터 튕김: 상대 Enemy 루트가 이동 방향 **앞**에 있을 때만 방향 반전. (상대X−내X)×direction > 이 값일 때만. 0이면 약간의 앞쪽 분리만 있어도 허용.")]
     [SerializeField] private float enemyBumpRequireFrontAlongX = 0.02f;
 
+    [Header("Kinematic 낙하 (발밑에 Ground 없을 때)")]
+    [SerializeField] private float kinematicFallAcceleration = 45f;
+    [SerializeField] private float kinematicMaxFallSpeed = 22f;
+    [SerializeField] private float kinematicGroundCheckDistance = 0.15f;
+
     public State CurrentState => currentState;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        MonsterKinematicSetup.ApplyGameplayKinematic(rb);
         bodyCollider = GetComponent<Collider2D>();
         if (animator == null)
             animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>(true);
@@ -121,28 +127,34 @@ public class GreenTurtle : MonoBehaviour, IShellKillable
             return;
         }
 
+        float vx = 0f;
         switch (currentState)
         {
             case State.Walk:
                 TryFlipIfWallAhead();
-                rb.linearVelocity = new Vector2(direction * walkSpeed, rb.linearVelocity.y);
+                vx = direction * walkSpeed;
                 break;
             case State.InnerWalk:
                 TryFlipIfWallAhead();
-                rb.linearVelocity = new Vector2(direction * innerWalkSpeed, rb.linearVelocity.y);
+                vx = direction * innerWalkSpeed;
                 break;
             case State.Sliding:
             {
                 float slideVx = slideSpeed;
                 if (IsSlidingBlockedByLateralGround())
                     slideVx = 0f;
-                rb.linearVelocity = new Vector2(direction * slideVx, rb.linearVelocity.y);
+                vx = direction * slideVx;
                 slideTimeRemaining -= Time.fixedDeltaTime;
                 if (slideTimeRemaining <= 0f)
                     SetState(State.InnerWalk);
                 break;
             }
         }
+
+        bool grounded = MonsterKinematicFall.IsGrounded(rb, bodyCollider, groundTag, kinematicGroundCheckDistance);
+        float vy = MonsterKinematicFall.NextVerticalVelocity(
+            rb.linearVelocity.y, grounded, kinematicFallAcceleration, kinematicMaxFallSpeed, Time.fixedDeltaTime);
+        rb.linearVelocity = new Vector2(vx, vy);
     }
 
     /// <summary>Sliding 중 좌우 벽(지면의 수직 법선)에 막혀 있으면 true. 방향은 바꾸지 않고 가로 속도만 0.</summary>
@@ -173,6 +185,9 @@ public class GreenTurtle : MonoBehaviour, IShellKillable
             HandlePlayerCollision(col);
             return;
         }
+
+        if (MonsterGreenShellContact.TryHandleMovingShellHit(col, this, OnShellKill))
+            return;
 
         // Walk / InnerWalk: Ground 옆면(벽) 접촉 시 방향 반전. Sliding은 벽에서 반전 없음.
         if (IsGroundTaggedCollider(col.collider)
@@ -403,6 +418,8 @@ public class GreenTurtle : MonoBehaviour, IShellKillable
     {
         if (isDyingFromInnerWalkStomp) return;
         isDyingFromInnerWalkStomp = true;
+
+        rb.bodyType = RigidbodyType2D.Dynamic;
 
         foreach (var sr in GetComponentsInChildren<SpriteRenderer>(true))
             sr.flipY = true;

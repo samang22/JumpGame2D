@@ -157,6 +157,9 @@ MonoBehaviour:
   sideWallFlipCooldown: 0.2
   wallCheckCastDistance: 0.12
   enemyBumpRequireFrontAlongX: 0.02
+  kinematicFallAcceleration: 30
+  kinematicMaxFallSpeed: 10
+  kinematicGroundCheckDistance: 0.15
 --- !u!95 &7174642883338912539
 Animator:
   serializedVersion: 7

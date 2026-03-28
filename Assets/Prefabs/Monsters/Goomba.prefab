@@ -199,9 +199,16 @@ MonoBehaviour:
   stompThreshold: 0.2
   animator: {fileID: 0}
   paramIsDeath: isDeath
+  deathPopVelocity: 4
+  deathMinLifetimeBeforeDestroy: 3
   destroyAfterDeathDelay: 0.45
   playerTag: Player
   groundTag: Ground
+  enemyTag: Enemy
   spriteFacesRightByDefault: 0
   sideWallFlipCooldown: 0.2
   wallCheckCastDistance: 0.12
+  enemyBumpRequireFrontAlongX: 0.02
+  kinematicFallAcceleration: 30
+  kinematicMaxFallSpeed: 10
+  kinematicGroundCheckDistance: 0.15

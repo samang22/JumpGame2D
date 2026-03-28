@@ -48,6 +48,11 @@ public class Goomba : MonoBehaviour, IShellKillable
     [Tooltip("상대 Enemy 루트가 이동 방향 앞에 있을 때만 방향 반전. (상대X−내X)×direction > 이 값.")]
     [SerializeField] private float enemyBumpRequireFrontAlongX = 0.02f;
 
+    [Header("Kinematic 낙하 (발밑에 Ground 없을 때)")]
+    [SerializeField] private float kinematicFallAcceleration = 45f;
+    [SerializeField] private float kinematicMaxFallSpeed = 22f;
+    [SerializeField] private float kinematicGroundCheckDistance = 0.15f;
+
     private State currentState = State.Walk;
     private Rigidbody2D rb;
     private RigidbodyType2D initialBodyType;
@@ -66,8 +71,9 @@ public class Goomba : MonoBehaviour, IShellKillable
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        initialBodyType = rb.bodyType;
         initialGravityScale = rb.gravityScale;
+        MonsterKinematicSetup.ApplyGameplayKinematic(rb);
+        initialBodyType = RigidbodyType2D.Kinematic;
         bodyCollider = GetComponent<Collider2D>();
         if (animator == null)
             animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>(true);
@@ -111,13 +117,20 @@ public class Goomba : MonoBehaviour, IShellKillable
         }
 
         TryFlipIfWallAhead();
-        rb.linearVelocity = new Vector2(direction * walkSpeed, rb.linearVelocity.y);
+        float vx = direction * walkSpeed;
+        bool grounded = MonsterKinematicFall.IsGrounded(rb, bodyCollider, groundTag, kinematicGroundCheckDistance);
+        float vy = MonsterKinematicFall.NextVerticalVelocity(
+            rb.linearVelocity.y, grounded, kinematicFallAcceleration, kinematicMaxFallSpeed, Time.fixedDeltaTime);
+        rb.linearVelocity = new Vector2(vx, vy);
     }
 
     private void OnCollisionEnter2D(Collision2D col)
     {
         if (isDead) return;
         if (GameState.IsVictory) return;
+
+        if (MonsterGreenShellContact.TryHandleMovingShellHit(col, this, OnShellKill))
+            return;
 
         if (col.gameObject.CompareTag(groundTag) && currentState == State.Walk)
             TryFlipOnSideWall(col);

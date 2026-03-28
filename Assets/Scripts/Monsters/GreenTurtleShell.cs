@@ -1,20 +1,15 @@
 using UnityEngine;
 
-/// <summary>껍데기 이동 모드. 다른 스크립트는 <see cref="GreenTurtleShell.MotionState"/>로만 판별하는 것을 권장.</summary>
-public enum GreenTurtleShellMotionState
+/// <summary>껍데기 이동 여부. 플레이어 킥 vs 밟기 관성 구분은 내부 <c>launched</c> + RB 속도로 처리.</summary>
+public enum GreenTurtleShellMoveState
 {
-    /// <summary>정지 또는 수평 속도 임계 이하. 적에게 데미지 없음.</summary>
     Idle,
-    /// <summary>거북 밟기 직후 등 물리 속도로만 굴러감(<c>launched</c> 아님).</summary>
-    StompCoast,
-    /// <summary>플레이어가 옆에서 밀어 등속(킥 후 kickSpeed 유지).</summary>
-    PlayerKick,
+    Move,
 }
 
 /// <summary>
-/// 스폰된 껍데기. Idle에서 플레이어가 옆에서 밀면 등속으로 굴러감(Move).
-/// 이동 중 적: EnemyHealth면 1 데미지(HP 0이면 IShellKillable 낙하 사망), 아니면 IShellKillable 또는 즉시 Destroy.
-/// 플레이어는 밟으면 정지, 옆·위 등 밟힘 아닌 접촉 시 데미지(이동 중일 때).
+/// 스폰된 껍데기. 벽(지면)에 닿으면 방향 전환, 마리오가 옆에서 밀면 Move, 위에서 밟으면 정지(Idle).
+/// 움직이는 껍데기에 맞은 몬스터 처리는 각 몬스터 스크립트 + <see cref="MonsterGreenShellContact"/>.
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
@@ -28,7 +23,6 @@ public class GreenTurtleShell : MonoBehaviour
 
     [Header("Contacts")]
     [SerializeField] private string playerTag = "Player";
-    [SerializeField] private string enemyTag = "Enemy";
     [SerializeField] private string groundTag = "Ground";
     [SerializeField] private float stompThreshold = 0.2f;
     [Tooltip("밟았을 때 플레이어에게 줄 위쪽 속도 (GreenTurtle stompBounce와 맞춤)")]
@@ -42,35 +36,58 @@ public class GreenTurtleShell : MonoBehaviour
     [Header("Wall bounce (GreenTurtle과 동일 개념)")]
     [Tooltip("옆벽 반전 후 연속 반전 방지(초)")]
     [SerializeField] private float sideWallFlipCooldown = 0.2f;
-    [Tooltip("이동 방향으로 Cast — 모서리에서 벽 법선만으로는 반전이 안 될 때")]
+    [Tooltip("이동 방향으로 Cast — 모서리에서 법선만으로는 반전이 안 될 때")]
     [SerializeField] private float wallCheckCastDistance = 0.12f;
-    [Tooltip("충돌 콜백 시점에는 rb 속도가 이미 깎여 있을 수 있어, 상대속도로 보조 판정(제곱).")]
-    [SerializeField] private float enemyHitMinRelativeSpeedSq = 0.25f;
+    [Tooltip("외부(몬스터)에서 충돌 직전 Move 여부를 물을 때 — rb는 이미 깎였을 수 있어 상대속도 보조(제곱).")]
+    [SerializeField] private float contactMoveMinRelativeSpeedSq = 0.25f;
 
     private Rigidbody2D rb;
     private Collider2D bodyCollider;
+    /// <summary>플레이어 옆 킥 후 등속(kickSpeed) 유지.</summary>
     private bool launched;
     private float shellMoveDir = 1f;
     private float lastSideWallFlipTime = -999f;
     private readonly RaycastHit2D[] wallCastBuffer = new RaycastHit2D[8];
-    /// <summary>이번 FixedUpdate에서 물리 스텝 직전까지의 수평 속도. 충돌로 속도가 깎인 뒤 복구할 때 사용.</summary>
+    /// <summary>이번 FixedUpdate에서 물리 스텝 직전까지의 수평 속도.</summary>
     private float lastCommittedHorizontalVx;
 
-    /// <summary>현재 이동 모드. launched·수평 속도·맵 편집/승리 상태로 계산(충돌 콜백에서도 최신).</summary>
-    public GreenTurtleShellMotionState MotionState
+    /// <summary>Idle ↔ Move. 킥·밟기 관성 모두 Move.</summary>
+    public GreenTurtleShellMoveState MoveState => ComputeMoveState(rb != null ? rb.linearVelocity.x : 0f);
+
+    GreenTurtleShellMoveState ComputeMoveState(float horizontalVx)
     {
-        get
+        if (rb == null)
+            return GreenTurtleShellMoveState.Idle;
+        if (GameState.IsMapEditMode || GameState.IsVictory)
+            return GreenTurtleShellMoveState.Idle;
+        if (launched)
+            return GreenTurtleShellMoveState.Move;
+        if (Mathf.Abs(horizontalVx) > moveSpeedThreshold)
+            return GreenTurtleShellMoveState.Move;
+        return GreenTurtleShellMoveState.Idle;
+    }
+
+    /// <summary>충돌 콜백 시점에 “막 전까지 Move였는지” 몬스터가 물을 때 사용.</summary>
+    public GreenTurtleShellMoveState GetMoveStateAtContact(Collision2D col)
+    {
+        GreenTurtleShellMoveState s = ComputeMoveState(lastCommittedHorizontalVx);
+        if (s == GreenTurtleShellMoveState.Move)
+            return GreenTurtleShellMoveState.Move;
+        if (col != null && col.relativeVelocity.sqrMagnitude >= contactMoveMinRelativeSpeedSq)
+            return GreenTurtleShellMoveState.Move;
+        return GreenTurtleShellMoveState.Idle;
+    }
+
+    /// <summary>몬스터가 즉사 처리한 뒤 껍데기 수평 속도를 복구할 때 호출.</summary>
+    public void RestoreVelocityAfterMonsterContact()
+    {
+        if (launched)
         {
-            if (rb == null)
-                return GreenTurtleShellMotionState.Idle;
-            if (GameState.IsMapEditMode || GameState.IsVictory)
-                return GreenTurtleShellMotionState.Idle;
-            if (launched)
-                return GreenTurtleShellMotionState.PlayerKick;
-            if (Mathf.Abs(rb.linearVelocity.x) > moveSpeedThreshold)
-                return GreenTurtleShellMotionState.StompCoast;
-            return GreenTurtleShellMotionState.Idle;
+            rb.linearVelocity = new Vector2(shellMoveDir * kickSpeed, rb.linearVelocity.y);
+            return;
         }
+
+        rb.linearVelocity = new Vector2(lastCommittedHorizontalVx, rb.linearVelocity.y);
     }
 
     private void Awake()
@@ -114,7 +131,7 @@ public class GreenTurtleShell : MonoBehaviour
     private void UpdateAnimatorMoveBool()
     {
         if (animator == null || string.IsNullOrEmpty(paramIsMove)) return;
-        bool moving = MotionState != GreenTurtleShellMotionState.Idle;
+        bool moving = MoveState == GreenTurtleShellMoveState.Move;
         animator.SetBool(paramIsMove, moving);
     }
 
@@ -132,10 +149,6 @@ public class GreenTurtleShell : MonoBehaviour
             HandlePlayerCollision(col, playerGo);
             return;
         }
-
-        GameObject enemyGo = MonsterEnemyContactBounce.FindEnemyRoot(col.gameObject, enemyTag);
-        if (enemyGo != null)
-            HandleEnemyCollision(enemyGo, col);
     }
 
     private void OnCollisionStay2D(Collision2D col)
@@ -146,7 +159,6 @@ public class GreenTurtleShell : MonoBehaviour
             TryFlipOnSideWall(col);
     }
 
-    /// <summary>모서리 등: 이동 방향으로 Cast해 수직 Ground면 shellMoveDir 반전.</summary>
     void TryFlipIfWallAhead()
     {
         if (Time.time - lastSideWallFlipTime < sideWallFlipCooldown)
@@ -177,7 +189,6 @@ public class GreenTurtleShell : MonoBehaviour
         }
     }
 
-    /// <summary>접촉 법선·상대속도로 옆벽에 밀려 들어올 때 shellMoveDir 반전 (GreenTurtle TryFlipOnSideWall과 동일).</summary>
     void TryFlipOnSideWall(Collision2D col)
     {
         if (Time.time - lastSideWallFlipTime < sideWallFlipCooldown)
@@ -231,54 +242,6 @@ public class GreenTurtleShell : MonoBehaviour
         ApplyShellFacing();
     }
 
-    /// <summary>
-    /// 충돌 콜백은 물리 스텝 **이후**라 rb 속도가 이미 줄어든다. <see cref="MotionState"/>만 보면 Idle로 떨어져 적을 못 잡는다.
-    /// </summary>
-    bool ShouldApplyEnemyHit(Collision2D col)
-    {
-        if (launched) return true;
-        if (Mathf.Abs(lastCommittedHorizontalVx) > moveSpeedThreshold) return true;
-        if (col != null && col.relativeVelocity.sqrMagnitude >= enemyHitMinRelativeSpeedSq) return true;
-        return false;
-    }
-
-    private void HandleEnemyCollision(GameObject enemyRoot, Collision2D col)
-    {
-        if (enemyRoot == gameObject) return;
-        if (!ShouldApplyEnemyHit(col)) return;
-
-        var health = enemyRoot.GetComponent<EnemyHealth>();
-        if (health != null)
-        {
-            health.TakeDamage(99999);
-            RestoreVelocityAfterEnemySquash();
-            return;
-        }
-
-        if (enemyRoot.TryGetComponent<IShellKillable>(out var shellKillable))
-        {
-            shellKillable.OnShellKill();
-            RestoreVelocityAfterEnemySquash();
-            return;
-        }
-
-        Destroy(enemyRoot);
-        RestoreVelocityAfterEnemySquash();
-    }
-
-    /// <summary>몬스터와 충돌해 물리가 속도를 깎아도, 껍데기는 같은 방향·의도 속도로 통과하도록 복구.</summary>
-    void RestoreVelocityAfterEnemySquash()
-    {
-        if (launched)
-        {
-            rb.linearVelocity = new Vector2(shellMoveDir * kickSpeed, rb.linearVelocity.y);
-            return;
-        }
-
-        rb.linearVelocity = new Vector2(lastCommittedHorizontalVx, rb.linearVelocity.y);
-    }
-
-    /// <summary>이동 중에도 윗면·모서리에서 굼바와 동일한 밟힘 판정(수직 우세 법선 + 상대 수직 속도).</summary>
     bool IsPlayerStompFromAbove(Collision2D col, GameObject playerGo)
     {
         if (playerGo.transform.position.y <= transform.position.y + stompThreshold)
