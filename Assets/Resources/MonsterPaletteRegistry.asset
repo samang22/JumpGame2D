@@ -29,3 +29,7 @@ MonoBehaviour:
     displayName: BoongBoong
     prefab: {fileID: 4600433437318055029, guid: 814d6bb6c077f8743846fa45d61676bc, type: 3}
     icon: {fileID: -1387217517392445762, guid: 931ed90a788e00a458e6e8107fbee97b, type: 3}
+  - id: Koopa
+    displayName: Koopa
+    prefab: {fileID: 4600433437318055029, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8091a, type: 3}
+    icon: {fileID: -1387217517392445762, guid: 931ed90a788e00a458e6e8107fbee97b, type: 3}

@@ -52,10 +52,13 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 spawnPosition;
     private PlayerState playerState = PlayerState.Small;
+    private float initialGravityScale = 1f;
+    private bool isInPipeWarp;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        initialGravityScale = rb.gravityScale;
         animator = GetComponentInChildren<Animator>(true);
         col = GetComponent<Collider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -79,6 +82,9 @@ public class PlayerController : MonoBehaviour
     /// <summary>물음표 블록 등에서 스폰할 아이템 종류를 정할 때 사용 (맞은 시점 기준).</summary>
     public PlayerState CurrentState => playerState;
 
+    /// <summary>땅에 닿아 있는지(타일/플랫폼 기준). 파이프 등에서 사용.</summary>
+    public bool IsGrounded => isGrounded;
+
     void OnEnable()
     {
         if (inputActions == null) inputActions = new PlayerInputActions();
@@ -95,7 +101,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (isDead || isInGoalSequence) return;
+        if (isDead || isInGoalSequence || isInPipeWarp) return;
 
         if (transform.position.y < deathYThreshold)
             OnDead();
@@ -129,7 +135,7 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (isDead || isInGoalSequence) return;
+        if (isDead || isInGoalSequence || isInPipeWarp) return;
 
         if (freezeInputDuringPowerUp && isPowerUpTransition)
         {
@@ -161,7 +167,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnJump(InputAction.CallbackContext context)
     {
-        if (isDead || isInGoalSequence) return;
+        if (isDead || isInGoalSequence || isInPipeWarp) return;
         if (freezeInputDuringPowerUp && isPowerUpTransition) return;
         if (isGrounded)
         {
@@ -194,7 +200,7 @@ public class PlayerController : MonoBehaviour
 
     bool TryPickupPowerUp(Collider2D other)
     {
-        if (isDead || isInGoalSequence || isPowerUpTransition) return false;
+        if (isDead || isInGoalSequence || isInPipeWarp || isPowerUpTransition) return false;
         var item = other.GetComponent<PowerUpItem>() ?? other.GetComponentInParent<PowerUpItem>();
         if (item == null) return false;
         return item.TryConsumeByPlayer(this);
@@ -204,7 +210,7 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage()
     {
-        if (isInvincible || isDead || isInGoalSequence || isPowerUpTransition) return;
+        if (isInvincible || isDead || isInGoalSequence || isInPipeWarp || isPowerUpTransition) return;
 
         switch (playerState)
         {
@@ -240,7 +246,7 @@ public class PlayerController : MonoBehaviour
 
     public void PowerUp(PowerUpType type)
     {
-        if (isDead || isInGoalSequence || isPowerUpTransition) return;
+        if (isDead || isInGoalSequence || isInPipeWarp || isPowerUpTransition) return;
 
         PlayerState target;
         switch (type)
@@ -372,5 +378,32 @@ public class PlayerController : MonoBehaviour
 
         if (col != null) col.enabled = true;
         rb.gravityScale = 1f;
+    }
+
+    // ── 녹색 파이프(포탈) ───────────────────────────────────
+
+    /// <summary>파이프 슬라이드·워프 중. 이동·점프·아이템·데미지 무시.</summary>
+    public bool IsInPipeWarp => isInPipeWarp;
+
+    public void BeginPipeWarp()
+    {
+        isInPipeWarp = true;
+        moveInput = 0f;
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = 0f;
+        if (col != null) col.enabled = false;
+        if (animator != null)
+        {
+            animator.SetFloat("speed", 0f);
+            animator.SetBool("isGrounded", true);
+        }
+    }
+
+    public void EndPipeWarp()
+    {
+        isInPipeWarp = false;
+        rb.gravityScale = initialGravityScale;
+        rb.linearVelocity = Vector2.zero;
+        if (col != null) col.enabled = true;
     }
 }

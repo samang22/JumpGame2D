@@ -96,8 +96,8 @@ public class GreenTurtle : MonoBehaviour, IShellKillable
     [SerializeField] private float enemyBumpRequireFrontAlongX = 0.02f;
 
     [Header("Kinematic 낙하 (발밑에 Ground 없을 때)")]
-    [SerializeField] private float kinematicFallAcceleration = 45f;
-    [SerializeField] private float kinematicMaxFallSpeed = 22f;
+    [SerializeField] private float kinematicFallAcceleration = 28f;
+    [SerializeField] private float kinematicMaxFallSpeed = 13f;
     [SerializeField] private float kinematicGroundCheckDistance = 0.15f;
 
     public State CurrentState => currentState;

@@ -38,6 +38,12 @@ public class PlaySceneController : MonoBehaviour
     [Tooltip("플레이 씬에서 생성된 파워업의 부모. 비어 있으면 씬 루트에 생성.")]
     [SerializeField] private Transform powerUpsRoot;
 
+    [Header("Pipes — 입구/출구 프리팹 (Edit과 동일 id·짝)")]
+    [SerializeField] private List<PipePaletteEntry> pipeEntrancePalette = new List<PipePaletteEntry>();
+    [SerializeField] private List<PipePaletteEntry> pipeExitPalette = new List<PipePaletteEntry>();
+    [SerializeField] private Transform pipeEntrancesRoot;
+    [SerializeField] private Transform pipeExitsRoot;
+
     [Header("Question blocks")]
     [SerializeField] private List<QuestionBlockPaletteEntry> questionBlockPalette = new List<QuestionBlockPaletteEntry>();
     [Tooltip("플레이 씬에서 생성된 물음표 블록의 부모. 비어 있으면 씬 루트에 생성.")]
@@ -194,6 +200,7 @@ public class PlaySceneController : MonoBehaviour
         }
 
         ApplyPowerUpsFromMapData(data);
+        PipePairMapUtil.ApplyFromMapData(data, pipeEntrancePalette, pipeExitPalette, pipeEntrancesRoot, pipeExitsRoot);
         ApplyQuestionBlocksFromMapData(data);
         ApplyMonstersFromMapData(data);
     }

@@ -53,6 +53,12 @@ public class MapData
 
     /// <summary>에디트에서 배치한 몬스터. prefabId는 MonsterPaletteEntry.id와 일치해야 함.</summary>
     public List<PlacedMonsterData> monsters = new List<PlacedMonsterData>();
+
+    /// <summary>입구 파이프. pairId로 pipeExits와 짝을 맞춤.</summary>
+    public List<PlacedPipeEntranceData> pipeEntrances = new List<PlacedPipeEntranceData>();
+
+    /// <summary>출구 파이프. pairId로 pipeEntrances와 짝을 맞춤.</summary>
+    public List<PlacedPipeExitData> pipeExits = new List<PlacedPipeExitData>();
 }
 
 [System.Serializable]
@@ -77,6 +83,24 @@ public class PlacedMonsterData
     public string prefabId;
     public float x;
     public float y;
+}
+
+[System.Serializable]
+public class PlacedPipeEntranceData
+{
+    public string prefabId;
+    public float x;
+    public float y;
+    public string pairId;
+}
+
+[System.Serializable]
+public class PlacedPipeExitData
+{
+    public string prefabId;
+    public float x;
+    public float y;
+    public string pairId;
 }
 
 [System.Serializable]

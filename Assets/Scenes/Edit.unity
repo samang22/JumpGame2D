@@ -3569,6 +3569,37 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1521016725
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1521016726}
+  m_Layer: 0
+  m_Name: PlacedPipeExitRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1521016726
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1521016725}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.62113, y: -0.1472, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1541355377
 GameObject:
   m_ObjectHideFlags: 0
@@ -3983,6 +4014,7 @@ MonoBehaviour:
   buttonPrefab: {fileID: 782147765836355473, guid: b738272008f17754ba41a4388928d2d1, type: 3}
   sectionGroupPrefab: {fileID: 3871685841367758336, guid: b0263844a116fb448af4e69df885a7ca, type: 3}
   gridRootChildName: GridRoot
+  paletteColumnsPerRow: 3
   clearSelectionButtonPrefab: {fileID: 5330724388961438108, guid: 74ff2bd9892f7fd46b7b327db86bd309, type: 3}
 --- !u!114 &1582993557
 MonoBehaviour:
@@ -116035,6 +116067,19 @@ MonoBehaviour:
     prefab: {fileID: 7393338314284507205, guid: 5ee315e7c8962f64a9510df92c5a59f5, type: 3}
     icon: {fileID: 3373568495408583166, guid: 062a9c8775245034e8e1b25005a8a34e, type: 3}
   placedPowerUpsRoot: {fileID: 1171375339}
+  pipeEntrancePalette:
+  - id: GreenPipe_Entrance
+    displayName: GreenPipe_Entrance
+    prefab: {fileID: 7992479140807601749, guid: 8018d10cb17480f4582c2da2b655bcd0, type: 3}
+    icon: {fileID: -4525137821981154073, guid: 39d256fcab1d0e04fbaa96d352261287, type: 3}
+  pipeExitPalette:
+  - id: GreenPipe_Exit
+    displayName: GreenPipe_Exit
+    prefab: {fileID: 7757527194814930290, guid: 425a4450e2b2b2e469ca933c2d44ed08, type: 3}
+    icon: {fileID: -4525137821981154073, guid: 39d256fcab1d0e04fbaa96d352261287, type: 3}
+  placedPipeEntrancesRoot: {fileID: 1804820340}
+  placedPipeExitsRoot: {fileID: 1521016726}
+  pipePlacementVerticalOffsetCells: 0.5
   questionBlockPalette:
   - id: QuestionBlock
     displayName: QuestionBlock
@@ -116327,6 +116372,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1795000995}
   m_CullTransparentMesh: 1
+--- !u!1 &1804820339
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1804820340}
+  m_Layer: 0
+  m_Name: PlacedPipeEntranceRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1804820340
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1804820339}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.62113, y: -0.1472, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1837347849
 GameObject:
   m_ObjectHideFlags: 0
@@ -116657,6 +116733,7 @@ MonoBehaviour:
   buttonPrefab: {fileID: 5330724388961438108, guid: 5cfefcb118b9a684d962107cab1e5bdc, type: 3}
   sectionGroupPrefab: {fileID: 3871685841367758336, guid: b0263844a116fb448af4e69df885a7ca, type: 3}
   gridRootChildName: GridRoot
+  paletteColumnsPerRow: 3
   clearButtonPrefab: {fileID: 5330724388961438108, guid: fb1cc26b17eac9b4d9d3706cb08be773, type: 3}
 --- !u!114 &1877003718
 MonoBehaviour:
@@ -117096,3 +117173,5 @@ SceneRoots:
   - {fileID: 1171375339}
   - {fileID: 1541355378}
   - {fileID: 349333555}
+  - {fileID: 1804820340}
+  - {fileID: 1521016726}

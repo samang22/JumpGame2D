@@ -21,4 +21,40 @@ public static class MonsterGreenShellContact
         applyKillFromShell?.Invoke();
         return true;
     }
+
+    /// <summary>
+    /// 껍데기 오브젝트의 <see cref="Collision2D"/>에서 호출.
+    /// 클래스 이름이 Koopa / BoongBoong 인 <see cref="IShellKillable"/>만 껍질 쪽에서 즉사 보완(Kinematic 콜백 누락 대비).
+    /// </summary>
+    public static bool TryHandleShellHitsEnemyFromShellSide(Collision2D col, GreenTurtleShell shell)
+    {
+        if (shell == null || col == null) return false;
+        if (GameState.IsMapEditMode || GameState.IsVictory) return false;
+        if (shell.GetMoveStateAtContact(col) != GreenTurtleShellMoveState.Move) return false;
+
+        var killable = FindKoopaOrBoongBoongShellKillable(col.collider);
+        if (killable == null) return false;
+
+        var killMb = killable as MonoBehaviour;
+        if (killMb != null && killMb.gameObject == shell.gameObject)
+            return false;
+
+        shell.RestoreVelocityAfterMonsterContact();
+        killable.OnShellKill();
+        return true;
+    }
+
+    static IShellKillable FindKoopaOrBoongBoongShellKillable(Collider2D other)
+    {
+        if (other == null) return null;
+        var mbs = other.GetComponentsInParent<MonoBehaviour>(true);
+        foreach (var mb in mbs)
+        {
+            if (mb is not IShellKillable sk) continue;
+            var typeName = mb.GetType().Name;
+            if (typeName == "Koopa" || typeName == "BoongBoong")
+                return sk;
+        }
+        return null;
+    }
 }

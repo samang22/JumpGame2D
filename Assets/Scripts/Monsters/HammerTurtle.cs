@@ -42,8 +42,8 @@ public class HammerTurtle : MonoBehaviour, IShellKillable
     [SerializeField] private float stompBounce = 8f;
 
     [Header("Kinematic 낙하 (발밑에 Ground 없을 때)")]
-    [SerializeField] private float kinematicFallAcceleration = 45f;
-    [SerializeField] private float kinematicMaxFallSpeed = 22f;
+    [SerializeField] private float kinematicFallAcceleration = 28f;
+    [SerializeField] private float kinematicMaxFallSpeed = 13f;
     [SerializeField] private float kinematicGroundCheckDistance = 0.15f;
 
     [Header("Death (밟힘 후 연출)")]

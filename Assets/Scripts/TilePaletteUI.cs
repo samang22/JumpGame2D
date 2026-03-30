@@ -91,9 +91,33 @@ public class TilePaletteUI : MonoBehaviour
                 btn.onClick.AddListener(() => tileEditController.ClearPaintSelection());
         }
 
-        // 파워업(버섯/꽃 등) — 타일과 동일 패널에서 선택
+        // 파워업·파이프 입구/출구 — Items 섹션
         var powerUpList = tileEditController != null ? tileEditController.GetPowerUpPalette() : null;
-        if (powerUpList != null && powerUpList.Count > 0)
+        var pipeInList = tileEditController != null ? tileEditController.GetPipeEntrancePalette() : null;
+        var pipeOutList = tileEditController != null ? tileEditController.GetPipeExitPalette() : null;
+        bool hasItemsSection = false;
+        if (powerUpList != null)
+        {
+            foreach (var e in powerUpList)
+            {
+                if (e != null && e.prefab != null) { hasItemsSection = true; break; }
+            }
+        }
+        if (!hasItemsSection && pipeInList != null)
+        {
+            foreach (var e in pipeInList)
+            {
+                if (e != null && e.prefab != null) { hasItemsSection = true; break; }
+            }
+        }
+        if (!hasItemsSection && pipeOutList != null)
+        {
+            foreach (var e in pipeOutList)
+            {
+                if (e != null && e.prefab != null) { hasItemsSection = true; break; }
+            }
+        }
+        if (hasItemsSection)
         {
             if (useSectionGroup && sectionGroupPrefab != null)
             {
@@ -108,18 +132,56 @@ public class TilePaletteUI : MonoBehaviour
                 Transform puGrid = puGroup.transform.Find(gridRootChildName);
                 if (puGrid == null) puGrid = puGroup.transform;
                 EnsurePaletteGridColumns(puGrid);
-                foreach (var e in powerUpList)
+                if (powerUpList != null)
                 {
-                    if (e == null || e.prefab == null) continue;
-                    AddPowerUpButton(e, puGrid);
+                    foreach (var e in powerUpList)
+                    {
+                        if (e == null || e.prefab == null) continue;
+                        AddPowerUpButton(e, puGrid);
+                    }
+                }
+                if (pipeInList != null)
+                {
+                    foreach (var e in pipeInList)
+                    {
+                        if (e == null || e.prefab == null) continue;
+                        AddPipeEntranceButton(e, puGrid);
+                    }
+                }
+                if (pipeOutList != null)
+                {
+                    foreach (var e in pipeOutList)
+                    {
+                        if (e == null || e.prefab == null) continue;
+                        AddPipeExitButton(e, puGrid);
+                    }
                 }
             }
             else
             {
-                foreach (var e in powerUpList)
+                if (powerUpList != null)
                 {
-                    if (e == null || e.prefab == null) continue;
-                    AddPowerUpButton(e, buttonContainer);
+                    foreach (var e in powerUpList)
+                    {
+                        if (e == null || e.prefab == null) continue;
+                        AddPowerUpButton(e, buttonContainer);
+                    }
+                }
+                if (pipeInList != null)
+                {
+                    foreach (var e in pipeInList)
+                    {
+                        if (e == null || e.prefab == null) continue;
+                        AddPipeEntranceButton(e, buttonContainer);
+                    }
+                }
+                if (pipeOutList != null)
+                {
+                    foreach (var e in pipeOutList)
+                    {
+                        if (e == null || e.prefab == null) continue;
+                        AddPipeExitButton(e, buttonContainer);
+                    }
                 }
             }
         }
@@ -270,6 +332,64 @@ public class TilePaletteUI : MonoBehaviour
         string id = entry.id;
         if (btn != null && tileEditController != null)
             btn.onClick.AddListener(() => tileEditController.SetPlacePowerUpById(id));
+    }
+
+    private void AddPipeEntranceButton(PipePaletteEntry entry, Transform parent)
+    {
+        GameObject go = Instantiate(buttonPrefab, parent);
+        Button btn = go.GetComponent<Button>();
+        if (btn == null) btn = go.GetComponentInChildren<Button>();
+
+        Image img = go.GetComponentInChildren<Image>();
+        if (img != null)
+        {
+            Sprite sprite = entry.GetDisplaySprite();
+            if (sprite != null)
+                img.sprite = sprite;
+        }
+
+        string label = "[In] " + entry.GetLabel();
+        var tmpText = go.GetComponentInChildren<TMP_Text>();
+        if (tmpText != null)
+            tmpText.text = label;
+        else
+        {
+            var legacyText = go.GetComponentInChildren<Text>();
+            if (legacyText != null) legacyText.text = label;
+        }
+
+        string id = entry.id;
+        if (btn != null && tileEditController != null)
+            btn.onClick.AddListener(() => tileEditController.SetPlacePipeEntranceById(id));
+    }
+
+    private void AddPipeExitButton(PipePaletteEntry entry, Transform parent)
+    {
+        GameObject go = Instantiate(buttonPrefab, parent);
+        Button btn = go.GetComponent<Button>();
+        if (btn == null) btn = go.GetComponentInChildren<Button>();
+
+        Image img = go.GetComponentInChildren<Image>();
+        if (img != null)
+        {
+            Sprite sprite = entry.GetDisplaySprite();
+            if (sprite != null)
+                img.sprite = sprite;
+        }
+
+        string label = "[Out] " + entry.GetLabel();
+        var tmpText = go.GetComponentInChildren<TMP_Text>();
+        if (tmpText != null)
+            tmpText.text = label;
+        else
+        {
+            var legacyText = go.GetComponentInChildren<Text>();
+            if (legacyText != null) legacyText.text = label;
+        }
+
+        string id = entry.id;
+        if (btn != null && tileEditController != null)
+            btn.onClick.AddListener(() => tileEditController.SetPlacePipeExitById(id));
     }
 
     private void AddQuestionBlockButton(QuestionBlockPaletteEntry entry, Transform parent)

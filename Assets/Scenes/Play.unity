@@ -896,6 +896,10 @@ MonoBehaviour:
   paletteUI: {fileID: 0}
   powerUpPalette: []
   placedPowerUpsRoot: {fileID: 0}
+  pipeEntrancePalette: []
+  pipeExitPalette: []
+  placedPipeEntrancesRoot: {fileID: 0}
+  placedPipeExitsRoot: {fileID: 0}
   questionBlockPalette: []
   placedQuestionBlocksRoot: {fileID: 0}
   monsterPalette: []
@@ -1071,6 +1075,37 @@ MonoBehaviour:
   target: {fileID: 0}
   offset: {x: 0, y: 0, z: -10}
   smoothTime: 0.2
+--- !u!1 &851912257
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 851912258}
+  m_Layer: 0
+  m_Name: PlacedPipeEntranceRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &851912258
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 851912257}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.07002, y: -2.65487, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1001491879
 GameObject:
   m_ObjectHideFlags: 0
@@ -1122,6 +1157,18 @@ MonoBehaviour:
     prefab: {fileID: 7393338314284507205, guid: 5ee315e7c8962f64a9510df92c5a59f5, type: 3}
     icon: {fileID: 3373568495408583166, guid: 062a9c8775245034e8e1b25005a8a34e, type: 3}
   powerUpsRoot: {fileID: 1361000398}
+  pipeEntrancePalette:
+  - id: GreenPipe_Entrance
+    displayName: GreenPipe_Entrance
+    prefab: {fileID: 7992479140807601749, guid: 8018d10cb17480f4582c2da2b655bcd0, type: 3}
+    icon: {fileID: -4525137821981154073, guid: 39d256fcab1d0e04fbaa96d352261287, type: 3}
+  pipeExitPalette:
+  - id: GreenPipe_Exit
+    displayName: GreenPipe_Exit
+    prefab: {fileID: 7757527194814930290, guid: 425a4450e2b2b2e469ca933c2d44ed08, type: 3}
+    icon: {fileID: -4525137821981154073, guid: 39d256fcab1d0e04fbaa96d352261287, type: 3}
+  pipeEntrancesRoot: {fileID: 0}
+  pipeExitsRoot: {fileID: 0}
   questionBlockPalette:
   - id: QuestionBlock
     displayName: QuestionBlock
@@ -2021,6 +2068,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1678773717}
   m_CullTransparentMesh: 1
+--- !u!1 &1740377701
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1740377702}
+  m_Layer: 0
+  m_Name: PlacedPipeExitRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1740377702
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1740377701}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.07002, y: -2.65487, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1782829275
 GameObject:
   m_ObjectHideFlags: 0
@@ -2486,3 +2564,5 @@ SceneRoots:
   - {fileID: 1361000398}
   - {fileID: 1274196279}
   - {fileID: 388124108}
+  - {fileID: 851912258}
+  - {fileID: 1740377702}

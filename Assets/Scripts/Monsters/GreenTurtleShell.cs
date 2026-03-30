@@ -149,6 +149,9 @@ public class GreenTurtleShell : MonoBehaviour
             HandlePlayerCollision(col, playerGo);
             return;
         }
+
+        if (MonsterGreenShellContact.TryHandleShellHitsEnemyFromShellSide(col, this))
+            return;
     }
 
     private void OnCollisionStay2D(Collision2D col)

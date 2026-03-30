@@ -214,6 +214,6 @@ MonoBehaviour:
   deathPopVelocity: 4
   deathMinLifetimeBeforeDestroy: 3
   destroyAfterDeathDelay: 0.45
-  kinematicFallAcceleration: 45
-  kinematicMaxFallSpeed: 22
+  kinematicFallAcceleration: 28
+  kinematicMaxFallSpeed: 13
   kinematicGroundCheckDistance: 0.15

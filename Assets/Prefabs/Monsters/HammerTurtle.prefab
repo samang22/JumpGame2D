@@ -188,8 +188,8 @@ MonoBehaviour:
   groundTag: Ground
   stompThreshold: 0.2
   stompBounce: 8
-  kinematicFallAcceleration: 30
-  kinematicMaxFallSpeed: 10
+  kinematicFallAcceleration: 28
+  kinematicMaxFallSpeed: 13
   kinematicGroundCheckDistance: 0.15
   deathPopVelocity: 4
   deathMinLifetimeBeforeDestroy: 3

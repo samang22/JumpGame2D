@@ -66,8 +66,8 @@ public class BoongBoong : MonoBehaviour, IShellKillable
     [SerializeField] private float destroyAfterDeathDelay = 0.45f;
 
     [Header("Kinematic 낙하")]
-    [SerializeField] private float kinematicFallAcceleration = 45f;
-    [SerializeField] private float kinematicMaxFallSpeed = 22f;
+    [SerializeField] private float kinematicFallAcceleration = 28f;
+    [SerializeField] private float kinematicMaxFallSpeed = 13f;
     [SerializeField] private float kinematicGroundCheckDistance = 0.15f;
 
     private Phase phase = Phase.Patrol;

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
@@ -33,6 +34,16 @@ public class TileEditController : MonoBehaviour
     [Tooltip("에디트에서 배치한 파워업의 부모. 비어 있으면 배치·저장이 동작하지 않음.")]
     [SerializeField] private Transform placedPowerUpsRoot;
 
+    [Header("Pipes — 입구 / 출구 별도 프리팹 (pairId로 짝 지음)")]
+    [SerializeField] private List<PipePaletteEntry> pipeEntrancePalette;
+    [SerializeField] private List<PipePaletteEntry> pipeExitPalette;
+    [Tooltip("입구 파이프 인스턴스 부모")]
+    [SerializeField] private Transform placedPipeEntrancesRoot;
+    [Tooltip("출구 파이프 인스턴스 부모")]
+    [SerializeField] private Transform placedPipeExitsRoot;
+    [Tooltip("파이프 입·출구 배치 시 셀 중심에서 세로 방향으로 이만큼 ‘칸’ 단위 이동 (+면 위). 기본 0.5 = 반 칸.")]
+    [SerializeField] private float pipePlacementVerticalOffsetCells = 0.5f;
+
     [Header("Question blocks (palette UI)")]
     [Tooltip("물음표 블록 프리팹. id는 저장 JSON의 prefabId와 동일해야 Play 씬에서도 복원됨.")]
     [SerializeField] private List<QuestionBlockPaletteEntry> questionBlockPalette;
@@ -58,6 +69,9 @@ public class TileEditController : MonoBehaviour
 
     /// <summary>선택된 몬스터 팔레트 id. 타일·파워업·물음표와 동시에 선택되지 않음.</summary>
     private string selectedMonsterId = "";
+
+    private string selectedPipeEntranceId = "";
+    private string selectedPipeExitId = "";
 
     private Tilemap GetTilemapForLayer(TileLayerType layer)
     {
@@ -109,6 +123,18 @@ public class TileEditController : MonoBehaviour
                 PlacePowerUpAtCell(cellPos);
         }
 
+        if (Mouse.current.leftButton.wasReleasedThisFrame && !eraseMode && !string.IsNullOrEmpty(selectedPipeEntranceId))
+        {
+            if (!pointerOverSpawn)
+                PlacePipeEntranceAtCell(cellPos);
+        }
+
+        if (Mouse.current.leftButton.wasReleasedThisFrame && !eraseMode && !string.IsNullOrEmpty(selectedPipeExitId))
+        {
+            if (!pointerOverSpawn)
+                PlacePipeExitAtCell(cellPos);
+        }
+
         if (Mouse.current.leftButton.wasReleasedThisFrame && !eraseMode && !string.IsNullOrEmpty(selectedQuestionBlockId))
         {
             if (!pointerOverSpawn)
@@ -128,6 +154,7 @@ public class TileEditController : MonoBehaviour
                 if (!pointerOverSpawn)
                     EraseAt(cellPos);
                 ErasePowerUpsAtCell(cellPos);
+                ErasePipesAtCell(cellPos);
                 EraseQuestionBlocksAtCell(cellPos);
                 EraseMonstersAtCell(cellPos);
             }
@@ -142,6 +169,7 @@ public class TileEditController : MonoBehaviour
             if (!pointerOverSpawn)
                 EraseAt(cellPos);
             ErasePowerUpsAtCell(cellPos);
+            ErasePipesAtCell(cellPos);
             EraseQuestionBlocksAtCell(cellPos);
             EraseMonstersAtCell(cellPos);
         }
@@ -176,6 +204,8 @@ public class TileEditController : MonoBehaviour
         paintTile = tile;
         paintTileId = FindEntryByTile(tile)?.id ?? "";
         selectedPowerUpId = "";
+        selectedPipeEntranceId = "";
+        selectedPipeExitId = "";
         selectedQuestionBlockId = "";
         selectedMonsterId = "";
     }
@@ -187,6 +217,8 @@ public class TileEditController : MonoBehaviour
         paintTile = entry.tile;
         paintTileId = id;
         selectedPowerUpId = "";
+        selectedPipeEntranceId = "";
+        selectedPipeExitId = "";
         selectedQuestionBlockId = "";
         selectedMonsterId = "";
     }
@@ -197,6 +229,8 @@ public class TileEditController : MonoBehaviour
         if (on)
         {
             selectedPowerUpId = "";
+            selectedPipeEntranceId = "";
+            selectedPipeExitId = "";
             selectedQuestionBlockId = "";
             selectedMonsterId = "";
         }
@@ -215,6 +249,8 @@ public class TileEditController : MonoBehaviour
             if (e == null || e.prefab == null) continue;
             if (e.id != id) continue;
             selectedPowerUpId = id;
+            selectedPipeEntranceId = "";
+            selectedPipeExitId = "";
             selectedQuestionBlockId = "";
             selectedMonsterId = "";
             paintTile = null;
@@ -226,6 +262,62 @@ public class TileEditController : MonoBehaviour
     }
 
     public void ClearPowerUpSelection() => selectedPowerUpId = "";
+
+    /// <summary>입구 파이프 팔레트 선택. id는 PipePaletteEntry.id.</summary>
+    public void SetPlacePipeEntranceById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || pipeEntrancePalette == null)
+        {
+            selectedPipeEntranceId = "";
+            return;
+        }
+        foreach (var e in pipeEntrancePalette)
+        {
+            if (e == null || e.prefab == null) continue;
+            if (e.id != id) continue;
+            selectedPipeEntranceId = id;
+            selectedPipeExitId = "";
+            selectedPowerUpId = "";
+            selectedQuestionBlockId = "";
+            selectedMonsterId = "";
+            paintTile = null;
+            paintTileId = "";
+            eraseMode = false;
+            return;
+        }
+        selectedPipeEntranceId = "";
+    }
+
+    /// <summary>출구 파이프 팔레트 선택. 가장 오래된 미연결 입구와 같은 pairId로 짝 지음.</summary>
+    public void SetPlacePipeExitById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || pipeExitPalette == null)
+        {
+            selectedPipeExitId = "";
+            return;
+        }
+        foreach (var e in pipeExitPalette)
+        {
+            if (e == null || e.prefab == null) continue;
+            if (e.id != id) continue;
+            selectedPipeExitId = id;
+            selectedPipeEntranceId = "";
+            selectedPowerUpId = "";
+            selectedQuestionBlockId = "";
+            selectedMonsterId = "";
+            paintTile = null;
+            paintTileId = "";
+            eraseMode = false;
+            return;
+        }
+        selectedPipeExitId = "";
+    }
+
+    public void ClearPipeSelection()
+    {
+        selectedPipeEntranceId = "";
+        selectedPipeExitId = "";
+    }
 
     /// <summary>타일 팔레트에서 물음표 블록 버튼 클릭 시 호출. id는 QuestionBlockPaletteEntry.id와 동일.</summary>
     public void SetPlaceQuestionBlockById(string id)
@@ -241,6 +333,8 @@ public class TileEditController : MonoBehaviour
             if (e.id != id) continue;
             selectedQuestionBlockId = id;
             selectedPowerUpId = "";
+            selectedPipeEntranceId = "";
+            selectedPipeExitId = "";
             selectedMonsterId = "";
             paintTile = null;
             paintTileId = "";
@@ -266,6 +360,8 @@ public class TileEditController : MonoBehaviour
             if (e.id != id) continue;
             selectedMonsterId = id;
             selectedPowerUpId = "";
+            selectedPipeEntranceId = "";
+            selectedPipeExitId = "";
             selectedQuestionBlockId = "";
             paintTile = null;
             paintTileId = "";
@@ -276,6 +372,12 @@ public class TileEditController : MonoBehaviour
     }
 
     public void ClearMonsterSelection() => selectedMonsterId = "";
+
+    public IReadOnlyList<PipePaletteEntry> GetPipeEntrancePalette() =>
+        pipeEntrancePalette ?? (pipeEntrancePalette = new List<PipePaletteEntry>());
+
+    public IReadOnlyList<PipePaletteEntry> GetPipeExitPalette() =>
+        pipeExitPalette ?? (pipeExitPalette = new List<PipePaletteEntry>());
 
     /// <summary>TilePaletteUI에서 파워업 섹션을 그릴 때 사용.</summary>
     public IReadOnlyList<PowerUpPaletteEntry> GetPowerUpPalette() => powerUpPalette ?? (powerUpPalette = new List<PowerUpPaletteEntry>());
@@ -468,6 +570,10 @@ public class TileEditController : MonoBehaviour
         ClearPlacedPowerUps();
         ApplyPowerUpsFromData(data.powerUps);
 
+        if (data.pipeEntrances == null) data.pipeEntrances = new List<PlacedPipeEntranceData>();
+        if (data.pipeExits == null) data.pipeExits = new List<PlacedPipeExitData>();
+        PipePairMapUtil.ApplyFromMapData(data, pipeEntrancePalette, pipeExitPalette, placedPipeEntrancesRoot, placedPipeExitsRoot);
+
         if (data.questionBlocks == null) data.questionBlocks = new List<PlacedQuestionBlockData>();
         ClearPlacedQuestionBlocks();
         ApplyQuestionBlocksFromData(data.questionBlocks);
@@ -536,6 +642,38 @@ public class TileEditController : MonoBehaviour
             }
         }
 
+        data.pipeEntrances = new List<PlacedPipeEntranceData>();
+        if (placedPipeEntrancesRoot != null)
+        {
+            foreach (var m in placedPipeEntrancesRoot.GetComponentsInChildren<PlacedPipeEntranceEditMarker>(true))
+            {
+                var t = m.transform.position;
+                data.pipeEntrances.Add(new PlacedPipeEntranceData
+                {
+                    prefabId = m.paletteId,
+                    x = t.x,
+                    y = t.y,
+                    pairId = m.pairId
+                });
+            }
+        }
+
+        data.pipeExits = new List<PlacedPipeExitData>();
+        if (placedPipeExitsRoot != null)
+        {
+            foreach (var m in placedPipeExitsRoot.GetComponentsInChildren<PlacedPipeExitEditMarker>(true))
+            {
+                var t = m.transform.position;
+                data.pipeExits.Add(new PlacedPipeExitData
+                {
+                    prefabId = m.paletteId,
+                    x = t.x,
+                    y = t.y,
+                    pairId = m.pairId
+                });
+            }
+        }
+
         data.questionBlocks = new List<PlacedQuestionBlockData>();
         if (placedQuestionBlocksRoot != null)
         {
@@ -593,6 +731,8 @@ public class TileEditController : MonoBehaviour
         paintTileId = "";
         eraseMode = false;
         selectedPowerUpId = "";
+        selectedPipeEntranceId = "";
+        selectedPipeExitId = "";
         selectedQuestionBlockId = "";
         selectedMonsterId = "";
     }
@@ -653,6 +793,124 @@ public class TileEditController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(id) || powerUpPalette == null) return null;
         foreach (var e in powerUpPalette)
+            if (e != null && e.id == id) return e;
+        return null;
+    }
+
+    void PlacePipeEntranceAtCell(Vector3Int cell)
+    {
+        if (placedPipeEntrancesRoot == null) return;
+        var entry = FindPipeEntranceEntryById(selectedPipeEntranceId);
+        if (entry == null || entry.prefab == null) return;
+
+        Vector3 pos = groundTilemap.GetCellCenterWorld(cell);
+        pos.z = 0f;
+        ApplyPipeGridVerticalOffset(ref pos, cell);
+        var go = Instantiate(entry.prefab, pos, Quaternion.identity, placedPipeEntrancesRoot);
+        var marker = go.GetComponent<PlacedPipeEntranceEditMarker>();
+        if (marker == null) marker = go.AddComponent<PlacedPipeEntranceEditMarker>();
+        marker.paletteId = entry.id;
+        marker.pairId = Guid.NewGuid().ToString("N");
+    }
+
+    void PlacePipeExitAtCell(Vector3Int cell)
+    {
+        if (placedPipeExitsRoot == null) return;
+        var entry = FindPipeExitEntryById(selectedPipeExitId);
+        if (entry == null || entry.prefab == null) return;
+
+        var pairEntrance = FindOldestUnpairedEntrance();
+        if (pairEntrance == null)
+        {
+            Debug.LogWarning("[TileEditController] 출구에 연결할 입구가 없습니다. 먼저 입구 파이프를 배치하세요.");
+            return;
+        }
+
+        Vector3 pos = groundTilemap.GetCellCenterWorld(cell);
+        pos.z = 0f;
+        ApplyPipeGridVerticalOffset(ref pos, cell);
+        var go = Instantiate(entry.prefab, pos, Quaternion.identity, placedPipeExitsRoot);
+        var marker = go.GetComponent<PlacedPipeExitEditMarker>();
+        if (marker == null) marker = go.AddComponent<PlacedPipeExitEditMarker>();
+        marker.paletteId = entry.id;
+        marker.pairId = pairEntrance.pairId;
+    }
+
+    void ApplyPipeGridVerticalOffset(ref Vector3 pos, Vector3Int cell)
+    {
+        if (groundTilemap == null || Mathf.Approximately(pipePlacementVerticalOffsetCells, 0f))
+            return;
+        float oneCellY = groundTilemap.GetCellCenterWorld(cell + Vector3Int.up).y -
+                         groundTilemap.GetCellCenterWorld(cell).y;
+        pos.y += oneCellY * pipePlacementVerticalOffsetCells;
+    }
+
+    /// <summary>아직 출구가 없는 입구 중, 가장 먼저 생성된 것.</summary>
+    PlacedPipeEntranceEditMarker FindOldestUnpairedEntrance()
+    {
+        if (placedPipeEntrancesRoot == null) return null;
+        var entrances = placedPipeEntrancesRoot.GetComponentsInChildren<PlacedPipeEntranceEditMarker>(true);
+        if (entrances == null || entrances.Length == 0) return null;
+
+        var exitPairIds = new HashSet<string>();
+        if (placedPipeExitsRoot != null)
+        {
+            foreach (var ex in placedPipeExitsRoot.GetComponentsInChildren<PlacedPipeExitEditMarker>(true))
+            {
+                if (ex != null && !string.IsNullOrEmpty(ex.pairId))
+                    exitPairIds.Add(ex.pairId);
+            }
+        }
+
+        PlacedPipeEntranceEditMarker best = null;
+        int bestInstanceId = int.MaxValue;
+        foreach (var e in entrances)
+        {
+            if (e == null || string.IsNullOrEmpty(e.pairId)) continue;
+            if (exitPairIds.Contains(e.pairId)) continue;
+            int id = e.gameObject.GetInstanceID();
+            if (id < bestInstanceId)
+            {
+                bestInstanceId = id;
+                best = e;
+            }
+        }
+        return best;
+    }
+
+    void ErasePipesAtCell(Vector3Int cell)
+    {
+        Bounds b = new Bounds(groundTilemap.GetCellCenterWorld(cell), (Vector3)groundTilemap.cellSize);
+        if (placedPipeEntrancesRoot != null)
+        {
+            foreach (var m in placedPipeEntrancesRoot.GetComponentsInChildren<PlacedPipeEntranceEditMarker>(true))
+            {
+                if (m != null && b.Contains(m.transform.position))
+                    Destroy(m.gameObject);
+            }
+        }
+        if (placedPipeExitsRoot != null)
+        {
+            foreach (var m in placedPipeExitsRoot.GetComponentsInChildren<PlacedPipeExitEditMarker>(true))
+            {
+                if (m != null && b.Contains(m.transform.position))
+                    Destroy(m.gameObject);
+            }
+        }
+    }
+
+    PipePaletteEntry FindPipeEntranceEntryById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || pipeEntrancePalette == null) return null;
+        foreach (var e in pipeEntrancePalette)
+            if (e != null && e.id == id) return e;
+        return null;
+    }
+
+    PipePaletteEntry FindPipeExitEntryById(string id)
+    {
+        if (string.IsNullOrEmpty(id) || pipeExitPalette == null) return null;
+        foreach (var e in pipeExitPalette)
             if (e != null && e.id == id) return e;
         return null;
     }
