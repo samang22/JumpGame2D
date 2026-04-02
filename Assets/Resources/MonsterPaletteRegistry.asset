@@ -32,4 +32,4 @@ MonoBehaviour:
   - id: Koopa
     displayName: Koopa
     prefab: {fileID: 4600433437318055029, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8091a, type: 3}
-    icon: {fileID: -1387217517392445762, guid: 931ed90a788e00a458e6e8107fbee97b, type: 3}
+    icon: {fileID: 21300000, guid: 003efb1b056b95443962e221aa0b0fb7, type: 3}

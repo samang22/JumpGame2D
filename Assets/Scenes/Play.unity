@@ -900,6 +900,7 @@ MonoBehaviour:
   pipeExitPalette: []
   placedPipeEntrancesRoot: {fileID: 0}
   placedPipeExitsRoot: {fileID: 0}
+  pipePlacementVerticalOffsetCells: 0.5
   questionBlockPalette: []
   placedQuestionBlocksRoot: {fileID: 0}
   monsterPalette: []
@@ -1072,7 +1073,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79bcf3f1630c1094b9ee90f6435c6a2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
-  target: {fileID: 0}
+  target: {fileID: 1591550105}
   offset: {x: 0, y: 0, z: -10}
   smoothTime: 0.2
 --- !u!1 &851912257
@@ -1167,8 +1168,8 @@ MonoBehaviour:
     displayName: GreenPipe_Exit
     prefab: {fileID: 7757527194814930290, guid: 425a4450e2b2b2e469ca933c2d44ed08, type: 3}
     icon: {fileID: -4525137821981154073, guid: 39d256fcab1d0e04fbaa96d352261287, type: 3}
-  pipeEntrancesRoot: {fileID: 0}
-  pipeExitsRoot: {fileID: 0}
+  pipeEntrancesRoot: {fileID: 851912258}
+  pipeExitsRoot: {fileID: 1740377702}
   questionBlockPalette:
   - id: QuestionBlock
     displayName: QuestionBlock
